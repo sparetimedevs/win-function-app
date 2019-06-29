@@ -1,0 +1,59 @@
+name: $(BuildDefinitionName)_$(SourceBranchName)_$(Date:yyyyMMdd)$(Rev:.r)
+
+resources:
+  - repo: self
+
+queue:
+  name: Hosted macOS
+  demands: java
+
+trigger:
+  batch: true
+  branches:
+    include:
+      - master
+      - work/*
+pr:
+  branches:
+    include:
+      - master
+
+steps:
+  - script: npm i -g azure-functions-core-tools --unsafe-perm true
+    displayName: 'Install Azure Functions Core tools'
+
+  - task: Maven@3
+    displayName: 'Build with Maven'
+    inputs:
+      mavenPomFile: 'pom.xml'
+      publishJUnitResults: false
+      jdkVersionOption: '1.8'
+      jdkArchitectureOption: 'x64'
+      sonarQubeRunAnalysis: false
+      sqMavenPluginVersionChoice: 'latest'
+
+  - task: CopyFiles@2
+    displayName: 'Copy files to artifacts'
+    inputs:
+      sourceFolder: '$(Build.SourcesDirectory)/target/azure-functions/sparetimedevs-win/'
+      targetFolder: '$(Build.ArtifactStagingDirectory)'
+
+  - task: DeleteFiles@1
+    displayName: 'Remove local.settings.json from artifacts'
+    inputs:
+      sourceFolder: '$(Build.ArtifactStagingDirectory)'
+      contents: 'local.settings.json'
+
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish artifacts'
+    inputs:
+      pathtoPublish: '$(Build.ArtifactStagingDirectory)'
+      artifactName: 'drop'
+
+  - task: PublishCodeCoverageResults@1
+    displayName: 'Publish code coverage'
+    inputs:
+      codeCoverageTool: 'jaCoCo'
+      summaryFileLocation: '$(System.DefaultWorkingDirectory)/target/site/jacoco/jacoco.xml'
+      reportDirectory: '$(System.DefaultWorkingDirectory)/target/site/jacoco'
+      additionalCodeCoverageFiles: '$(System.DefaultWorkingDirectory)/target/jacoco.exec'
