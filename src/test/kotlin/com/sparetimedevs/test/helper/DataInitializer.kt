@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package com.sparetimedevs.win
+package com.sparetimedevs.test.helper
 
-private const val MONGO_DB_CONNECTION_STRING = "MONGO_DB_CONNECTION_STRING"
-private const val DB_NAME = "win_db"
+import com.sparetimedevs.win.model.Candidate
+import com.sparetimedevs.win.repository.CandidateRepository
 
-fun getMongoDbConnectionString(): String {
-	return System.getenv(MONGO_DB_CONNECTION_STRING)
-}
+class DataInitializer(private val candidateRepository: CandidateRepository) {
 
-fun getDbName(): String {
-	return DB_NAME
+	suspend fun initCandidates(candidates: List<Candidate>) {
+		candidateRepository.deleteAll()
+		candidates.forEach { candidateRepository.save(it) }
+	}
 }

@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package com.sparetimedevs.testhelper
+package com.sparetimedevs.test.helper
 
+import com.sparetimedevs.test.data.candidates
 import com.sparetimedevs.win.ServiceLocator
 import io.kotlintest.specs.BehaviorSpec
 
@@ -26,7 +27,7 @@ class DoIt : BehaviorSpec({
 	given("I wan't some candidates") {
 		`when`("I manually and locally test") {
 			then("inserts them in the database") {
-				init.initData()
+				init.initCandidates(candidates)
 			}
 		}
 	}

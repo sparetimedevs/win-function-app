@@ -27,6 +27,7 @@
         <kotlinx.coroutines.version>1.2.1</kotlinx.coroutines.version>
         <arrow.core.version>0.8.2</arrow.core.version>
         <suspendmongo.version>0.0.1-EXPERIMENTAL-z0iw3e</suspendmongo.version>
+        <mongodb.driver.core.version>3.9.0</mongodb.driver.core.version>
         <kotlin.test.junit.version>3.3.0</kotlin.test.junit.version>
         <mockk.version>1.9</mockk.version>
     </properties>
@@ -91,6 +92,11 @@
             <groupId>com.sparetimedevs</groupId>
             <artifactId>suspendmongo</artifactId>
             <version>${suspendmongo.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.mongodb</groupId>
+            <artifactId>mongodb-driver-core</artifactId>
+            <version>${mongodb.driver.core.version}</version>
         </dependency>
 
         <!-- Test -->

@@ -14,15 +14,11 @@
  * limitations under the License.
  */
 
-package com.sparetimedevs.win
+package com.sparetimedevs.win.model
 
-private const val MONGO_DB_CONNECTION_STRING = "MONGO_DB_CONNECTION_STRING"
-private const val DB_NAME = "win_db"
+import java.util.Date
 
-fun getMongoDbConnectionString(): String {
-	return System.getenv(MONGO_DB_CONNECTION_STRING)
-}
-
-fun getDbName(): String {
-	return DB_NAME
-}
+data class CandidateViewModel(
+		val name: Name,
+		val dates: List<Date> = emptyList()
+)

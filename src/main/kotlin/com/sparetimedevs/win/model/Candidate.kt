@@ -27,6 +27,12 @@ typealias Name = String
 data class Candidate @BsonCreator constructor(
 		@BsonId val id: ObjectId = ObjectId(),
 		@BsonProperty("name") val name: Name,
-		@BsonProperty("date") val date: Date? = null,
-		@BsonProperty("listOfDates") val listOfDates: List<Date> = emptyList()
-)
+		@BsonProperty("dates") val dates: List<Date> = emptyList()
+) {
+	fun toViewModel(): CandidateViewModel {
+		return CandidateViewModel(name, dates)
+	}
+}
+
+fun List<Candidate>.toViewModel(): List<CandidateViewModel> =
+		this.map { candidate -> candidate.toViewModel() }.toCollection(ArrayList())

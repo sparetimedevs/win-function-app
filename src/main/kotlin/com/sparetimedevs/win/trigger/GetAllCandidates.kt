@@ -24,51 +24,52 @@ import com.microsoft.azure.functions.HttpStatus
 import com.microsoft.azure.functions.annotation.AuthorizationLevel
 import com.microsoft.azure.functions.annotation.FunctionName
 import com.microsoft.azure.functions.annotation.HttpTrigger
+import com.mongodb.client.model.Sorts
 import com.sparetimedevs.win.ServiceLocator
+import com.sparetimedevs.win.model.toViewModel
 import com.sparetimedevs.win.repository.CandidateRepository
 import kotlinx.coroutines.runBlocking
+import org.bson.conversions.Bson
 import java.util.Optional
 
-class GetAll {
+class GetAllCandidates {
 
     private val candidateRepository: CandidateRepository = ServiceLocator.defaultInstance.candidateRepository
 
     @FunctionName(FUNCTION_NAME)
-    fun getAllHttpTrigger(
+    fun get(
             @HttpTrigger(
                     name = TRIGGER_NAME,
                     methods = [HttpMethod.GET],
-                    route = "candidates",
+                    route = ROUTE,
                     authLevel = AuthorizationLevel.FUNCTION
             )
             request: HttpRequestMessage<Optional<String>>,
             context: ExecutionContext
-    ): HttpResponseMessage {
-
-        context.logger.info("The body of the request message is: ${request.body}")
-
-        var message = "This message should be overridden."
-
-        runBlocking {
-
-            val candidates = candidateRepository.findAll()
-            candidates.fold(
-                    {
-                        message = "ERROR!!! $it"
-                    },
-                    {
-                        message = "SUCCESS!!! The list $it"
-                    }
-            )
-        }
-
-        context.logger.info(message)
-
-        return request.createResponseBuilder(HttpStatus.OK).body("TODO, return all candidates. For now you have to do it with: $message" ).build()
+    ): HttpResponseMessage = runBlocking {
+        candidateRepository.findAll(sort).fold(
+                {
+                    context.logger.severe("$ERROR_MESSAGE$it")
+                    request.createResponseBuilder(HttpStatus.INTERNAL_SERVER_ERROR)
+                            .body("$ERROR_MESSAGE$it")
+                            .build()
+                },
+                {
+                    request.createResponseBuilder(HttpStatus.OK)
+                            .body(it.toViewModel())
+                            .header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
+                            .build()
+                }
+        )
     }
 
     companion object {
-        private const val FUNCTION_NAME = "Get_all_HTTP_trigger"
-        private const val TRIGGER_NAME = "getAllHttpTrigger"
+        private const val FUNCTION_NAME = "GetAllCandidates"
+        private const val TRIGGER_NAME = "getAllCandidates"
+        private const val ROUTE = "candidates"
+        private const val ERROR_MESSAGE = "An error occurred while find all candidates. The error is: "
+        private val sort: Bson = Sorts.descending("dates")
     }
 }
+
+
