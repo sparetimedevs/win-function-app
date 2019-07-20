@@ -27,10 +27,10 @@ typealias Name = String
 data class Candidate @BsonCreator constructor(
 		@BsonId val id: ObjectId = ObjectId(),
 		@BsonProperty("name") val name: Name,
-		@BsonProperty("dates") val dates: List<Date> = emptyList()
+		@BsonProperty("turns") val turns: List<Date> = emptyList()
 ) {
 	fun toViewModel(): CandidateViewModel {
-		return CandidateViewModel(name, dates)
+		return CandidateViewModel(name, turns)
 	}
 }
 

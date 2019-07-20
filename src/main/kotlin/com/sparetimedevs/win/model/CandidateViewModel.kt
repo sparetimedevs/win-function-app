@@ -20,5 +20,5 @@ import java.util.Date
 
 data class CandidateViewModel(
 		val name: Name,
-		val dates: List<Date> = emptyList()
+		val turns: List<Date> = emptyList()
 )

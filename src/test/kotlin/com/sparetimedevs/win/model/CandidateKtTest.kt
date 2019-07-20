@@ -27,13 +27,13 @@ class CandidateKtTest : BehaviorSpec({
 			then("returns a list of candidate view models") {
 				val candidateViewModels = candidates.toViewModel()
 				candidateViewModels[0].name shouldBe candidates[0].name
-				candidateViewModels[0].dates shouldBe candidates[0].dates
+				candidateViewModels[0].turns shouldBe candidates[0].turns
 				candidateViewModels[1].name shouldBe candidates[1].name
-				candidateViewModels[1].dates shouldBe candidates[1].dates
+				candidateViewModels[1].turns shouldBe candidates[1].turns
 				candidateViewModels[2].name shouldBe candidates[2].name
-				candidateViewModels[2].dates shouldBe candidates[2].dates
+				candidateViewModels[2].turns shouldBe candidates[2].turns
 				candidateViewModels[3].name shouldBe candidates[3].name
-				candidateViewModels[3].dates shouldBe candidates[3].dates
+				candidateViewModels[3].turns shouldBe candidates[3].turns
 			}
 		}
 	}

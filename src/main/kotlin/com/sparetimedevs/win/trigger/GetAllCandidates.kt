@@ -68,6 +68,7 @@ class GetAllCandidates {
         private const val TRIGGER_NAME = "getAllCandidates"
         private const val ROUTE = "candidates"
         private const val ERROR_MESSAGE = "An error occurred while find all candidates. The error is: "
-        private val sort: Bson = Sorts.descending("dates")
+	    private const val TURNS_FIELD = "turns"
+        private val sort: Bson = Sorts.descending(TURNS_FIELD)
     }
 }
