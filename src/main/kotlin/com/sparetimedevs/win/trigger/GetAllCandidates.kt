@@ -71,5 +71,3 @@ class GetAllCandidates {
         private val sort: Bson = Sorts.descending("dates")
     }
 }
-
-

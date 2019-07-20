@@ -17,41 +17,34 @@
 package com.sparetimedevs.win.algorithm
 
 import com.sparetimedevs.win.model.Candidate
-import io.kotlintest.data.forall
 import io.kotlintest.matchers.collections.shouldBeOneOf
-import io.kotlintest.specs.BehaviorSpec
-import io.kotlintest.shouldBe
 import io.kotlintest.shouldNotBe
-import io.kotlintest.tables.row
+import io.kotlintest.specs.BehaviorSpec
 
 class AmountOfCandidatesDividedByFourEqualsAmountDicesTest : BehaviorSpec({
 
 	Given("list of candidates provided") {
 		`when`("nextCandidate") {
 			then("good stuff happens") {
-				val a = AmountOfCandidatesDividedByFourEqualsAmountDices()
-				val b = a.nextCandidate(candidates)
+				val nextCandidate = AmountOfCandidatesDividedByFourEqualsAmountDices().nextCandidate(candidates)
 
-				b shouldBeOneOf candidates
+				nextCandidate shouldBeOneOf candidates
 			}
 
 			and( "repeating this a lot of times") {
 				then("average out the results") {
-					var nextCandidate = margaret
+					var currentTopCandidate = margaret
 					repeat(300) {
-						val index = candidates.indexOf(nextCandidate)
+						val index = candidates.indexOf(currentTopCandidate)
 						candidates.removeAt(index)
-						candidates.add(0, nextCandidate)
+						candidates.add(0, currentTopCandidate)
 
-						val a = AmountOfCandidatesDividedByFourEqualsAmountDices()
-						val b = a.nextCandidate(candidates)
+						val nextCandidate = AmountOfCandidatesDividedByFourEqualsAmountDices().nextCandidate(candidates)
 
-						b shouldBeOneOf candidates
-						b shouldNotBe nextCandidate
+						nextCandidate shouldBeOneOf candidates
+						nextCandidate shouldNotBe currentTopCandidate
 
-						println(b)
-
-						nextCandidate = b
+						currentTopCandidate = nextCandidate
 					}
 				}
 			}
