@@ -30,9 +30,11 @@ hs_err_pid*
 .DS_Store
 
 # Azure Functions
-local.settings.json
 bin/
 obj/
 
 # KotlinTest
 .kotlintest/
+
+# MongoDB Docker
+/mongodb/data/
