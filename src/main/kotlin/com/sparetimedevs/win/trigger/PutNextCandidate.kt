@@ -30,7 +30,7 @@ import java.util.Optional
 class PutNextCandidate {
 
     @FunctionName(FUNCTION_NAME)
-    fun putNextCandidateHttpTrigger(
+    fun put(
             @HttpTrigger(
                     name = TRIGGER_NAME,
                     methods = [HttpMethod.PUT],
@@ -52,8 +52,8 @@ class PutNextCandidate {
     }
 
     companion object {
-        private const val FUNCTION_NAME = "Put_next_candidate_HTTP_trigger"
-        private const val TRIGGER_NAME = "putNextCandidateHttpTrigger"
+        private const val FUNCTION_NAME = "PutNextCandidate"
+        private const val TRIGGER_NAME = "putNextCandidate"
         private const val BINDING_NAME_NAME = "Name"
         private const val BINDING_NAME_DATE = "Date"
     }

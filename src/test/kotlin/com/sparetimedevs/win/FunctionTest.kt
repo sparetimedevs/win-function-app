@@ -8,7 +8,6 @@ import com.sparetimedevs.HttpResponseMessageMock
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito
 import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.doReturn
 import org.mockito.Mockito.mock
@@ -20,7 +19,7 @@ import java.util.logging.Logger
  */
 class FunctionTest {
 
-    inline fun <reified T : Any> mock() = Mockito.mock(T::class.java)
+    inline fun <reified T : Any> mock() = mock(T::class.java)
 
     private fun testHttpTrigger(httpMethod: HttpMethod) {
         // Setup
@@ -36,7 +35,7 @@ class FunctionTest {
 
         doAnswer { invocation ->
             val status = invocation.arguments[0] as HttpStatus
-            HttpResponseMessageMock.HttpResponseMessageBuilderMock().status(status)
+            HttpResponseMessageMock.HttpResponseMessageBuilderMock(status)
         }.`when`<HttpRequestMessage<*>>(req).createResponseBuilder(any(HttpStatus::class.java))
 
         val context = mock(ExecutionContext::class.java)

@@ -27,6 +27,7 @@ import com.sparetimedevs.suspendmongo.crud.updateOne
 import com.sparetimedevs.suspendmongo.getCollection
 import com.sparetimedevs.suspendmongo.result.Error
 import com.sparetimedevs.win.model.Candidate
+import org.bson.conversions.Bson
 import org.bson.types.ObjectId
 
 class CandidateRepository(database: Database) {
@@ -34,6 +35,8 @@ class CandidateRepository(database: Database) {
 	private val collection = getCollection<Candidate>(database)
 
 	suspend fun findAll(): Either<Error, List<Candidate>> = collection.readAll().toEither()
+
+	suspend fun findAll(sort: Bson): Either<Error, List<Candidate>> = collection.readAll(sort).toEither()
 
 	suspend fun findOneById(id: ObjectId): Either<Error, Candidate> = collection.readOne(id).toEither()
 

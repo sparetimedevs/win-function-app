@@ -29,7 +29,7 @@ import java.util.Optional
 class GetNextCandidate {
 
     @FunctionName(FUNCTION_NAME)
-    fun getNextCandidateHttpTrigger(
+    fun get(
             @HttpTrigger(
                     name = TRIGGER_NAME,
                     methods = [HttpMethod.GET],
@@ -46,7 +46,7 @@ class GetNextCandidate {
     }
 
     companion object {
-        private const val FUNCTION_NAME = "Get_next_candidate_HTTP_trigger"
-        private const val TRIGGER_NAME = "getNextCandidateHttpTrigger"
+        private const val FUNCTION_NAME = "GetNextCandidate"
+        private const val TRIGGER_NAME = "getNextCandidate"
     }
 }

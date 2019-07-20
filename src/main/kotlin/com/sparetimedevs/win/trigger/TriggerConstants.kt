@@ -14,15 +14,7 @@
  * limitations under the License.
  */
 
-package com.sparetimedevs.win
+package com.sparetimedevs.win.trigger
 
-private const val MONGO_DB_CONNECTION_STRING = "MONGO_DB_CONNECTION_STRING"
-private const val DB_NAME = "win_db"
-
-fun getMongoDbConnectionString(): String {
-	return System.getenv(MONGO_DB_CONNECTION_STRING)
-}
-
-fun getDbName(): String {
-	return DB_NAME
-}
+const val CONTENT_TYPE = "Content-Type"
+const val CONTENT_TYPE_APPLICATION_JSON = "application/json"
