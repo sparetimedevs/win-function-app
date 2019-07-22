@@ -12,7 +12,7 @@ trigger:
   branches:
     include:
       - master
-      - work/*
+      - feature/*
 pr:
   branches:
     include:
