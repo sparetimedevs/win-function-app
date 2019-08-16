@@ -26,6 +26,9 @@ import com.microsoft.azure.functions.annotation.FunctionName
 import com.microsoft.azure.functions.annotation.HttpTrigger
 import com.sparetimedevs.win.ServiceLocator
 import com.sparetimedevs.win.algorithm.CandidateAlgorithm
+import com.sparetimedevs.win.algorithm.DetailsOfAlgorithm
+import com.sparetimedevs.win.model.Candidate
+import com.sparetimedevs.win.model.NextCandidateViewModel
 import com.sparetimedevs.win.repository.CandidateRepository
 import kotlinx.coroutines.runBlocking
 import java.util.Optional
@@ -55,7 +58,7 @@ class GetNextCandidate {
 				},
 				{
 					request.createResponseBuilder(HttpStatus.OK)
-							.body(candidateAlgorithm.nextCandidate(it).toNameViewModel())
+							.body(candidateAlgorithm.nextCandidate(it).toViewModel())
 							.header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
 							.build()
 				}
@@ -67,4 +70,8 @@ class GetNextCandidate {
         private const val TRIGGER_NAME = "getNextCandidate"
         private const val ROUTE = "candidates/next"
     }
+}
+
+fun Pair<Candidate, DetailsOfAlgorithm>.toViewModel(): NextCandidateViewModel {
+	return NextCandidateViewModel(this.first.name, this.second)
 }

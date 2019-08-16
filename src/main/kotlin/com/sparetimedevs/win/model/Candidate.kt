@@ -32,10 +32,6 @@ data class Candidate @BsonCreator constructor(
 	fun toViewModel(): CandidateViewModel {
 		return CandidateViewModel(name, turns)
 	}
-
-	fun toNameViewModel(): CandidateNameViewModel {
-		return CandidateNameViewModel(name)
-	}
 }
 
 fun List<Candidate>.toViewModel(): List<CandidateViewModel> =

@@ -14,23 +14,20 @@
  * limitations under the License.
  */
 
-package com.sparetimedevs.win.algorithm
+package com.sparetimedevs.win.model
 
-import com.sparetimedevs.win.model.Candidate
-import com.sparetimedevs.win.model.D6
-import kotlin.math.ceil
+import io.kotlintest.matchers.numerics.shouldBeInRange
+import io.kotlintest.specs.BehaviorSpec
 
-class AmountOfCandidatesDividedByFourEqualsAmountDices : CandidateAlgorithm {
+class DieTest : BehaviorSpec({
 
-	override fun nextCandidate(candidates: List<Candidate>): Candidate {
-		val amountOfDices = ceil(candidates.size.toDouble().div(4L)).toInt()
-		var countEyes = 0
-		for (i: Int in 0 until amountOfDices) {
-			countEyes = countEyes.plus(D6.roll())
-		}
-		return when {
-			countEyes < candidates.size -> candidates[countEyes - 1]
-			else -> candidates.last()
+	given("a D6") {
+		`when`("roll") {
+			then("returns a number in range of one to six") {
+				repeat(300) {
+					D6.roll() shouldBeInRange IntRange(1, 6)
+				}
+			}
 		}
 	}
-}
+})

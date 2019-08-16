@@ -22,7 +22,3 @@ data class CandidateViewModel(
 		val name: Name,
 		val turns: List<Date> = emptyList()
 )
-
-data class CandidateNameViewModel(
-		val name: Name
-)

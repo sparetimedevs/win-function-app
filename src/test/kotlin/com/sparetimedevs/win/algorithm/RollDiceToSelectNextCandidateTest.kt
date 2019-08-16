@@ -18,17 +18,19 @@ package com.sparetimedevs.win.algorithm
 
 import com.sparetimedevs.win.model.Candidate
 import io.kotlintest.matchers.collections.shouldBeOneOf
+import io.kotlintest.matchers.numerics.shouldBeInRange
+import io.kotlintest.shouldBe
 import io.kotlintest.shouldNotBe
 import io.kotlintest.specs.BehaviorSpec
 
-class AmountOfCandidatesDividedByFourEqualsAmountDicesTest : BehaviorSpec({
+class RollDiceToSelectNextCandidateTest : BehaviorSpec({
 
 	Given("list of candidates provided") {
 		`when`("nextCandidate") {
-			then("good stuff happens") {
-				val nextCandidate = AmountOfCandidatesDividedByFourEqualsAmountDices().nextCandidate(candidates)
+			then("one candidate from the list is returned") {
+				val nextCandidate = RollDiceToSelectNextCandidate().nextCandidate(candidates)
 
-				nextCandidate shouldBeOneOf candidates
+				nextCandidate.first shouldBeOneOf candidates
 			}
 
 			and( "repeating this a lot of times") {
@@ -39,14 +41,32 @@ class AmountOfCandidatesDividedByFourEqualsAmountDicesTest : BehaviorSpec({
 						candidates.removeAt(index)
 						candidates.add(0, currentTopCandidate)
 
-						val nextCandidate = AmountOfCandidatesDividedByFourEqualsAmountDices().nextCandidate(candidates)
+						val nextCandidate = RollDiceToSelectNextCandidate().nextCandidate(candidates)
 
-						nextCandidate shouldBeOneOf candidates
-						nextCandidate shouldNotBe currentTopCandidate
+						nextCandidate.first shouldBeOneOf candidates
+						nextCandidate.first shouldNotBe currentTopCandidate
 
-						currentTopCandidate = nextCandidate
+						currentTopCandidate = nextCandidate.first
 					}
 				}
+			}
+		}
+	}
+
+	Given("rolling dice") {
+		`when`("nextCandidate") {
+			then("every dice rolled should have a number in range of one to six") {
+				val nextCandidate = RollDiceToSelectNextCandidate().nextCandidate(candidates)
+
+				nextCandidate.second.diceEyes.forEach {
+					it shouldBeInRange IntRange(1, 6)
+				}
+			}
+
+			then("the total amount of eyes is equal to the sum of the eyes on all dice") {
+				val nextCandidate = RollDiceToSelectNextCandidate().nextCandidate(candidates)
+
+				nextCandidate.second.totalEyes shouldBe nextCandidate.second.diceEyes.sum()
 			}
 		}
 	}
