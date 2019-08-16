@@ -24,29 +24,47 @@ import com.microsoft.azure.functions.HttpStatus
 import com.microsoft.azure.functions.annotation.AuthorizationLevel
 import com.microsoft.azure.functions.annotation.FunctionName
 import com.microsoft.azure.functions.annotation.HttpTrigger
+import com.sparetimedevs.win.ServiceLocator
+import com.sparetimedevs.win.algorithm.CandidateAlgorithm
+import com.sparetimedevs.win.repository.CandidateRepository
+import kotlinx.coroutines.runBlocking
 import java.util.Optional
 
 class GetNextCandidate {
 
-    @FunctionName(FUNCTION_NAME)
+	private val candidateAlgorithm: CandidateAlgorithm = ServiceLocator.defaultInstance.candidateAlgorithm
+	private val candidateRepository: CandidateRepository = ServiceLocator.defaultInstance.candidateRepository
+
+	@FunctionName(FUNCTION_NAME)
     fun get(
             @HttpTrigger(
                     name = TRIGGER_NAME,
                     methods = [HttpMethod.GET],
-                    route = "candidates/next",
+                    route = ROUTE,
                     authLevel = AuthorizationLevel.FUNCTION
             )
             request: HttpRequestMessage<Optional<String>>,
             context: ExecutionContext
-    ): HttpResponseMessage {
-
-        context.logger.info("The body of the request message is: ${request.body}")
-
-        return request.createResponseBuilder(HttpStatus.OK).body("TODO, return the next candidate and the location where to PUT the result." ).build()
-    }
+    ): HttpResponseMessage  = runBlocking {
+		candidateRepository.findAll(sort).fold(
+				{
+					context.logger.severe("$ERROR_MESSAGE$it")
+					request.createResponseBuilder(HttpStatus.INTERNAL_SERVER_ERROR)
+							.body("$ERROR_MESSAGE$it")
+							.build()
+				},
+				{
+					request.createResponseBuilder(HttpStatus.OK)
+							.body(candidateAlgorithm.nextCandidate(it).toNameViewModel())
+							.header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
+							.build()
+				}
+		)
+	}
 
     companion object {
         private const val FUNCTION_NAME = "GetNextCandidate"
         private const val TRIGGER_NAME = "getNextCandidate"
+        private const val ROUTE = "candidates/next"
     }
 }
