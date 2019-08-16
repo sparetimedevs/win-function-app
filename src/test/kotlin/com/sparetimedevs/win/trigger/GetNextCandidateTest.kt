@@ -25,6 +25,7 @@ import com.sparetimedevs.HttpResponseMessageMock
 import com.sparetimedevs.suspendmongo.result.Error
 import com.sparetimedevs.win.ServiceLocator
 import com.sparetimedevs.win.algorithm.CandidateAlgorithm
+import com.sparetimedevs.win.algorithm.DetailsOfRolledDice
 import com.sparetimedevs.win.getDbName
 import com.sparetimedevs.win.getMongoDbConnectionString
 import com.sparetimedevs.win.model.Candidate
@@ -63,15 +64,16 @@ class GetNextCandidateTest : BehaviorSpec({
 				val candidate2 = Candidate(name = "Another Name")
 				val candidates = listOf(candidate1, candidate2)
 				val eitherContainingCandidates = Right(candidates)
+				val detailsOfRolledDice = DetailsOfRolledDice(listOf(3, 2, 6))
 				coEvery { candidateRepository.findAll(any()) } returns eitherContainingCandidates
-				every { candidateAlgorithm.nextCandidate(any()) } returns candidate2
+				every { candidateAlgorithm.nextCandidate(any()) } returns (candidate2 to detailsOfRolledDice)
 				every { request.createResponseBuilder(any()) } returns HttpResponseMessageMock.HttpResponseMessageBuilderMock(HttpStatus.OK)
 
 				val response = GetNextCandidate().get(request, context)
 
 				response.status shouldBe HttpStatus.OK
 				response.getHeader(CONTENT_TYPE) shouldBe CONTENT_TYPE_APPLICATION_JSON
-				response.body shouldBe candidate2.toNameViewModel().toString()
+				response.body shouldBe (candidate2 to detailsOfRolledDice).toViewModel().toString()
 			}
 		}
 

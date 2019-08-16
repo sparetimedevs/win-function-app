@@ -14,13 +14,11 @@
  * limitations under the License.
  */
 
-package com.sparetimedevs.win.algorithm
+package com.sparetimedevs.win.model
 
-import com.sparetimedevs.win.model.Candidate
+import com.sparetimedevs.win.algorithm.DetailsOfAlgorithm
 
-interface CandidateAlgorithm {
-
-	fun nextCandidate(candidates: List<Candidate>): Pair<Candidate, DetailsOfAlgorithm>
-}
-
-interface DetailsOfAlgorithm
+data class NextCandidateViewModel(
+		val candidateName: Name,
+		val detailsOfAlgorithm: DetailsOfAlgorithm
+)
