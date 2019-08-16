@@ -18,7 +18,7 @@ package com.sparetimedevs.win.algorithm
 
 import com.sparetimedevs.win.model.Candidate
 import com.sparetimedevs.win.model.D6
-import java.lang.Math.ceil
+import kotlin.math.ceil
 
 class AmountOfCandidatesDividedByFourEqualsAmountDices : CandidateAlgorithm {
 

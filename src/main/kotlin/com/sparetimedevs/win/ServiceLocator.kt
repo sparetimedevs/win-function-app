@@ -24,7 +24,7 @@ import io.netty.channel.EventLoopGroup
 import io.netty.channel.nio.NioEventLoopGroup
 
 class ServiceLocator(
-		candidateAlgorithm: CandidateAlgorithm = AmountOfCandidatesDividedByFourEqualsAmountDices(),
+		val candidateAlgorithm: CandidateAlgorithm = AmountOfCandidatesDividedByFourEqualsAmountDices(),
 		eventLoopGroup: EventLoopGroup = NioEventLoopGroup(),
 		database: Database = Database(getMongoDbConnectionString(), getDbName(), eventLoopGroup = eventLoopGroup),
 		val candidateRepository: CandidateRepository = CandidateRepository(database)

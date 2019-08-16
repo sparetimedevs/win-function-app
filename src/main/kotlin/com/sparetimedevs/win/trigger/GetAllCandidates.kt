@@ -24,12 +24,10 @@ import com.microsoft.azure.functions.HttpStatus
 import com.microsoft.azure.functions.annotation.AuthorizationLevel
 import com.microsoft.azure.functions.annotation.FunctionName
 import com.microsoft.azure.functions.annotation.HttpTrigger
-import com.mongodb.client.model.Sorts
 import com.sparetimedevs.win.ServiceLocator
 import com.sparetimedevs.win.model.toViewModel
 import com.sparetimedevs.win.repository.CandidateRepository
 import kotlinx.coroutines.runBlocking
-import org.bson.conversions.Bson
 import java.util.Optional
 
 class GetAllCandidates {
@@ -67,8 +65,5 @@ class GetAllCandidates {
         private const val FUNCTION_NAME = "GetAllCandidates"
         private const val TRIGGER_NAME = "getAllCandidates"
         private const val ROUTE = "candidates"
-        private const val ERROR_MESSAGE = "An error occurred while find all candidates. The error is: "
-	    private const val TURNS_FIELD = "turns"
-        private val sort: Bson = Sorts.descending(TURNS_FIELD)
     }
 }
