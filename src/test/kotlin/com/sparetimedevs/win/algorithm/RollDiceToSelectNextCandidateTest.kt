@@ -16,7 +16,7 @@
 
 package com.sparetimedevs.win.algorithm
 
-import com.sparetimedevs.win.model.Candidate
+import com.sparetimedevs.test.data.candidates
 import io.kotlintest.matchers.collections.shouldBeOneOf
 import io.kotlintest.matchers.numerics.shouldBeInRange
 import io.kotlintest.shouldBe
@@ -35,15 +35,16 @@ class RollDiceToSelectNextCandidateTest : BehaviorSpec({
 
 			and( "repeating this a lot of times") {
 				then("average out the results") {
-					var currentTopCandidate = margaret
+					val mutableListOfCandidates = candidates.toMutableList()
+					var currentTopCandidate = mutableListOfCandidates.first()
 					repeat(300) {
-						val index = candidates.indexOf(currentTopCandidate)
-						candidates.removeAt(index)
-						candidates.add(0, currentTopCandidate)
+						val index = mutableListOfCandidates.indexOf(currentTopCandidate)
+						mutableListOfCandidates.removeAt(index)
+						mutableListOfCandidates.add(0, currentTopCandidate)
 
-						val nextCandidate = RollDiceToSelectNextCandidate().nextCandidate(candidates)
+						val nextCandidate = RollDiceToSelectNextCandidate().nextCandidate(mutableListOfCandidates)
 
-						nextCandidate.first shouldBeOneOf candidates
+						nextCandidate.first shouldBeOneOf mutableListOfCandidates
 						nextCandidate.first shouldNotBe currentTopCandidate
 
 						currentTopCandidate = nextCandidate.first
@@ -70,32 +71,4 @@ class RollDiceToSelectNextCandidateTest : BehaviorSpec({
 			}
 		}
 	}
-}) {
-	companion object {
-		private val margaret = Candidate(name = "Margaret")
-		private val candidates = mutableListOf(
-				Candidate(name = "Rose"),
-				Candidate(name = "Abbie"),
-				Candidate(name = "Tommy"),
-				Candidate(name = "Joseph"),
-				Candidate(name = "Fani"),
-				Candidate(name = "Eden"),
-				Candidate(name = "Tiffany"),
-				Candidate(name = "Aisha"),
-				Candidate(name = "Elsa"),
-				Candidate(name = "Ellen"),
-				Candidate(name = "Cerys"),
-				Candidate(name = "James"),
-				Candidate(name = "Kevin"),
-				Candidate(name = "William"),
-				Candidate(name = "Elle"),
-				Candidate(name = "Lois"),
-				Candidate(name = "Alexa"),
-				Candidate(name = "Kimberley"),
-				Candidate(name = "Saffron"),
-				Candidate(name = "Penny"),
-				Candidate(name = "George"),
-				margaret
-		)
-	}
-}
+})

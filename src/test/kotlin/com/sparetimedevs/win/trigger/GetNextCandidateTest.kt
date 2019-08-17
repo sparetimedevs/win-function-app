@@ -23,12 +23,13 @@ import com.microsoft.azure.functions.HttpRequestMessage
 import com.microsoft.azure.functions.HttpStatus
 import com.sparetimedevs.HttpResponseMessageMock
 import com.sparetimedevs.suspendmongo.result.Error
+import com.sparetimedevs.test.data.candidateLois
+import com.sparetimedevs.test.data.candidates
 import com.sparetimedevs.win.ServiceLocator
 import com.sparetimedevs.win.algorithm.CandidateAlgorithm
 import com.sparetimedevs.win.algorithm.DetailsOfRolledDice
 import com.sparetimedevs.win.getDbName
 import com.sparetimedevs.win.getMongoDbConnectionString
-import com.sparetimedevs.win.model.Candidate
 import com.sparetimedevs.win.repository.CandidateRepository
 import io.kotlintest.matchers.string.contain
 import io.kotlintest.shouldBe
@@ -60,20 +61,17 @@ class GetNextCandidateTest : BehaviorSpec({
 				every { ServiceLocator.defaultInstance } returns serviceLocator
 				every { serviceLocator.candidateAlgorithm } returns candidateAlgorithm
 				every { serviceLocator.candidateRepository } returns candidateRepository
-				val candidate1 = Candidate(name = "A Name")
-				val candidate2 = Candidate(name = "Another Name")
-				val candidates = listOf(candidate1, candidate2)
 				val eitherContainingCandidates = Right(candidates)
-				val detailsOfRolledDice = DetailsOfRolledDice(listOf(3, 2, 6))
+				val detailsOfRolledDice = DetailsOfRolledDice(listOf(3, 1, 5, 1, 2, 4))
 				coEvery { candidateRepository.findAll(any()) } returns eitherContainingCandidates
-				every { candidateAlgorithm.nextCandidate(any()) } returns (candidate2 to detailsOfRolledDice)
+				every { candidateAlgorithm.nextCandidate(any()) } returns (candidateLois to detailsOfRolledDice)
 				every { request.createResponseBuilder(any()) } returns HttpResponseMessageMock.HttpResponseMessageBuilderMock(HttpStatus.OK)
 
 				val response = GetNextCandidate().get(request, context)
 
 				response.status shouldBe HttpStatus.OK
 				response.getHeader(CONTENT_TYPE) shouldBe CONTENT_TYPE_APPLICATION_JSON
-				response.body shouldBe (candidate2 to detailsOfRolledDice).toViewModel().toString()
+				response.body shouldBe (candidateLois to detailsOfRolledDice).toViewModel().toString()
 			}
 		}
 

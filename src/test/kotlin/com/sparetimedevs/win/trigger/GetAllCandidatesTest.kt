@@ -23,6 +23,7 @@ import com.microsoft.azure.functions.HttpRequestMessage
 import com.microsoft.azure.functions.HttpStatus
 import com.sparetimedevs.HttpResponseMessageMock
 import com.sparetimedevs.suspendmongo.result.Error
+import com.sparetimedevs.test.data.candidates
 import com.sparetimedevs.win.ServiceLocator
 import com.sparetimedevs.win.getDbName
 import com.sparetimedevs.win.getMongoDbConnectionString
@@ -57,9 +58,6 @@ class GetAllCandidatesTest : BehaviorSpec({
 				mockkObject(ServiceLocator.Companion)
 				every { ServiceLocator.defaultInstance } returns serviceLocator
 				every { serviceLocator.candidateRepository } returns candidateRepository
-				val candidate1 = Candidate(name = "A Name")
-				val candidate2 = Candidate(name = "Another Name")
-				val candidates = listOf(candidate1, candidate2)
 				val eitherContainingCandidates = Right(candidates)
 				coEvery { candidateRepository.findAll(any()) } returns eitherContainingCandidates
 				every { request.createResponseBuilder(any()) } returns HttpResponseMessageMock.HttpResponseMessageBuilderMock(HttpStatus.OK)
