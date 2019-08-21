@@ -33,10 +33,10 @@ import com.sparetimedevs.win.repository.CandidateRepository
 import kotlinx.coroutines.runBlocking
 import java.util.Optional
 
-class GetNextCandidate {
-
-	private val candidateAlgorithm: CandidateAlgorithm = ServiceLocator.defaultInstance.candidateAlgorithm
-	private val candidateRepository: CandidateRepository = ServiceLocator.defaultInstance.candidateRepository
+class GetNextCandidate(
+		private val candidateAlgorithm: CandidateAlgorithm = ServiceLocator.defaultInstance.candidateAlgorithm,
+		private val candidateRepository: CandidateRepository = ServiceLocator.defaultInstance.candidateRepository
+) {
 
 	@FunctionName(FUNCTION_NAME)
     fun get(
