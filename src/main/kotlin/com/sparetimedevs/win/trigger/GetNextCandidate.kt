@@ -49,7 +49,7 @@ class GetNextCandidate(
             request: HttpRequestMessage<Optional<String>>,
             context: ExecutionContext
     ): HttpResponseMessage  = runBlocking {
-		candidateRepository.findAll(sort).fold(
+		candidateRepository.findAll(defaultSorting).fold(
 				{
 					context.logger.severe("$ERROR_MESSAGE$it")
 					request.createResponseBuilder(HttpStatus.INTERNAL_SERVER_ERROR)
