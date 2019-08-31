@@ -38,7 +38,7 @@ class CandidateRepository(database: Database) {
 
 	suspend fun findAll(sort: Bson): Either<Error, List<Candidate>> = collection.readAll(sort).toEither()
 
-	suspend fun findOneById(id: ObjectId): Either<Error, Candidate> = collection.readOne(id).toEither()
+	suspend fun findOneByName(name: String): Either<Error, Candidate> = collection.readOne("name" to name).toEither()
 
 	suspend fun deleteAll(): Either<Error, Boolean> = collection.deleteAll().toEither()
 

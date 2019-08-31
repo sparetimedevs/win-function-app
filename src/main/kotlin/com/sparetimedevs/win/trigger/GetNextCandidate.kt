@@ -16,6 +16,8 @@
 
 package com.sparetimedevs.win.trigger
 
+import arrow.fx.extensions.io.unsafeRun.runBlocking
+import arrow.unsafe
 import com.microsoft.azure.functions.ExecutionContext
 import com.microsoft.azure.functions.HttpMethod
 import com.microsoft.azure.functions.HttpRequestMessage
@@ -25,17 +27,14 @@ import com.microsoft.azure.functions.annotation.AuthorizationLevel
 import com.microsoft.azure.functions.annotation.FunctionName
 import com.microsoft.azure.functions.annotation.HttpTrigger
 import com.sparetimedevs.win.ServiceLocator
-import com.sparetimedevs.win.algorithm.CandidateAlgorithm
 import com.sparetimedevs.win.algorithm.DetailsOfAlgorithm
 import com.sparetimedevs.win.model.Candidate
 import com.sparetimedevs.win.model.NextCandidateViewModel
-import com.sparetimedevs.win.repository.CandidateRepository
-import kotlinx.coroutines.runBlocking
+import com.sparetimedevs.win.service.CandidateService
 import java.util.Optional
 
 class GetNextCandidate(
-		private val candidateAlgorithm: CandidateAlgorithm = ServiceLocator.defaultInstance.candidateAlgorithm,
-		private val candidateRepository: CandidateRepository = ServiceLocator.defaultInstance.candidateRepository
+		private val candidateService: CandidateService = ServiceLocator.defaultInstance.candidateService
 ) {
 
 	@FunctionName(FUNCTION_NAME)
@@ -48,22 +47,21 @@ class GetNextCandidate(
             )
             request: HttpRequestMessage<Optional<String>>,
             context: ExecutionContext
-    ): HttpResponseMessage  = runBlocking {
-		candidateRepository.findAll(defaultSorting).fold(
-				{
-					context.logger.severe("$ERROR_MESSAGE$it")
-					request.createResponseBuilder(HttpStatus.INTERNAL_SERVER_ERROR)
-							.body("$ERROR_MESSAGE$it")
-							.build()
-				},
-				{
-					request.createResponseBuilder(HttpStatus.OK)
-							.body(candidateAlgorithm.nextCandidate(it).toViewModel())
-							.header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
-							.build()
-				}
-		)
-	}
+	): HttpResponseMessage = unsafe { runBlocking { candidateService.determineNextCandidate() } }.fold(
+			{
+				context.logger.severe("$ERROR_MESSAGE$it")
+				request.createResponseBuilder(HttpStatus.INTERNAL_SERVER_ERROR)
+						.body("$ERROR_MESSAGE$it")
+						.header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
+						.build()
+			},
+			{
+				request.createResponseBuilder(HttpStatus.OK)
+						.body(it.toViewModel())
+						.header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
+						.build()
+			}
+	)
 
     companion object {
         private const val FUNCTION_NAME = "GetNextCandidate"

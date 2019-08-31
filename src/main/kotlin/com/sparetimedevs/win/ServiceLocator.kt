@@ -20,14 +20,16 @@ import com.sparetimedevs.suspendmongo.Database
 import com.sparetimedevs.win.algorithm.RollDiceToSelectNextCandidate
 import com.sparetimedevs.win.algorithm.CandidateAlgorithm
 import com.sparetimedevs.win.repository.CandidateRepository
+import com.sparetimedevs.win.service.CandidateService
 import io.netty.channel.EventLoopGroup
 import io.netty.channel.nio.NioEventLoopGroup
 
 class ServiceLocator(
-		val candidateAlgorithm: CandidateAlgorithm = RollDiceToSelectNextCandidate(),
+		candidateAlgorithm: CandidateAlgorithm = RollDiceToSelectNextCandidate(),
 		eventLoopGroup: EventLoopGroup = NioEventLoopGroup(),
 		database: Database = Database(getMongoDbConnectionString(), getDbName(), eventLoopGroup = eventLoopGroup),
-		val candidateRepository: CandidateRepository = CandidateRepository(database)
+		val candidateRepository: CandidateRepository = CandidateRepository(database),
+		val candidateService: CandidateService = CandidateService(candidateAlgorithm, candidateRepository)
 ) {
 
 	companion object {

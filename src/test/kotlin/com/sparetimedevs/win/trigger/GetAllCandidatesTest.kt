@@ -18,6 +18,8 @@ package com.sparetimedevs.win.trigger
 
 import arrow.core.Left
 import arrow.core.Right
+import arrow.fx.IO
+import arrow.fx.extensions.fx
 import com.microsoft.azure.functions.ExecutionContext
 import com.microsoft.azure.functions.HttpRequestMessage
 import com.microsoft.azure.functions.HttpStatus
@@ -25,12 +27,11 @@ import com.sparetimedevs.HttpResponseMessageMock
 import com.sparetimedevs.suspendmongo.result.Error
 import com.sparetimedevs.test.data.candidates
 import com.sparetimedevs.win.model.toViewModel
-import com.sparetimedevs.win.repository.CandidateRepository
+import com.sparetimedevs.win.service.CandidateService
 import io.kotlintest.matchers.string.contain
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.BehaviorSpec
 import io.mockk.Runs
-import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
@@ -44,12 +45,12 @@ class GetAllCandidatesTest : BehaviorSpec({
 			then( "returns all candidates") {
 				val request = mockk<HttpRequestMessage<Optional<String>>>()
 				val context = mockk<ExecutionContext>()
-				val candidateRepository = mockk<CandidateRepository>()
+				val candidateService = mockk<CandidateService>()
 				val eitherContainingCandidates = Right(candidates)
-				coEvery { candidateRepository.findAll(any()) } returns eitherContainingCandidates
+				every { candidateService.getAllCandidates() } returns IO.fx { eitherContainingCandidates }
 				every { request.createResponseBuilder(any()) } returns HttpResponseMessageMock.HttpResponseMessageBuilderMock(HttpStatus.OK)
 
-				val response = GetAllCandidates(candidateRepository).get(request, context)
+				val response = GetAllCandidates(candidateService).get(request, context)
 
 				response.status shouldBe HttpStatus.OK
 				response.getHeader(CONTENT_TYPE) shouldBe CONTENT_TYPE_APPLICATION_JSON
@@ -62,16 +63,17 @@ class GetAllCandidatesTest : BehaviorSpec({
 				val request = mockk<HttpRequestMessage<Optional<String>>>()
 				val context = mockk<ExecutionContext>()
 				val logger = mockk<Logger>()
-				val candidateRepository = mockk<CandidateRepository>()
+				val candidateService = mockk<CandidateService>()
 				every { context.logger } returns logger
 				every { logger.severe(any<String>()) } just Runs
 				val eitherContainingError = Left(Error.ServiceUnavailable())
-				coEvery { candidateRepository.findAll(any()) } returns eitherContainingError
+				every { candidateService.getAllCandidates() } returns IO.fx { eitherContainingError }
 				every { request.createResponseBuilder(any()) } returns HttpResponseMessageMock.HttpResponseMessageBuilderMock(HttpStatus.INTERNAL_SERVER_ERROR)
 
-				val response = GetAllCandidates(candidateRepository).get(request, context)
+				val response = GetAllCandidates(candidateService).get(request, context)
 
 				response.status shouldBe HttpStatus.INTERNAL_SERVER_ERROR
+				response.getHeader(CONTENT_TYPE) shouldBe CONTENT_TYPE_APPLICATION_JSON
 				response.body shouldBe contain(Error.ServiceUnavailable().message)
 			}
 		}
