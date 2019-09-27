@@ -21,10 +21,10 @@ import arrow.core.Left
 import arrow.core.Right
 import arrow.fx.IO
 import arrow.fx.extensions.fx
-import com.sparetimedevs.suspendmongo.result.Error
 import com.sparetimedevs.win.algorithm.CandidateAlgorithm
 import com.sparetimedevs.win.algorithm.DetailsOfAlgorithm
 import com.sparetimedevs.win.model.Candidate
+import com.sparetimedevs.win.model.DomainError
 import com.sparetimedevs.win.repository.CandidateRepository
 import com.sparetimedevs.win.trigger.defaultSorting
 import java.util.Date
@@ -34,12 +34,10 @@ class CandidateService(
 		private val candidateRepository: CandidateRepository
 ) {
 
-	fun getAllCandidates(): IO<Either<Error, List<Candidate>>> =
-			IO.fx {
-				!effect { candidateRepository.findAll(defaultSorting) }
-			}
+	fun getAllCandidates(): IO<Either<DomainError, List<Candidate>>> =
+			candidateRepository.findAll(defaultSorting)
 
-	fun determineNextCandidate(): IO<Either<Error, Pair<Candidate, DetailsOfAlgorithm>>> =
+	fun determineNextCandidate(): IO<Either<DomainError, Pair<Candidate, DetailsOfAlgorithm>>> =
 			IO.fx {
 				val candidates = !getAllCandidates()
 				candidates.fold(
@@ -52,7 +50,7 @@ class CandidateService(
 				)
 			}
 
-	fun addDateToCandidate(name: String, date: Date): IO<Either<Error, Candidate>> =
+	fun addDateToCandidate(name: String, date: Date): IO<Either<DomainError, Candidate>> =
 			IO.fx {
 				val candidate = !effect { candidateRepository.findOneByName(name) }
 				candidate.fold(
@@ -60,9 +58,9 @@ class CandidateService(
 							Left(it)
 						},
 						{
-							val turns = it.turns.toMutableList()
+							val turns = it.firstAttendanceAndTurns.toMutableList()
 							turns.add(0, date)
-							!effect { candidateRepository.update(it.id, it.copy(turns = turns)) }
+							!effect { candidateRepository.update(it.id, it.copy(firstAttendanceAndTurns = turns)) }
 						}
 				)
 			}

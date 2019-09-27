@@ -17,17 +17,18 @@
 package com.sparetimedevs.win.util
 
 import arrow.core.Either
+import com.sparetimedevs.win.model.DomainError
+import com.sparetimedevs.win.model.DomainError.DateParseError
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.Date
 
-class DateParseError(val message: String)
-
 private const val DATE_FORMAT = "yyyyMMdd"
-private const val DEFAULT_DATE_PARSE_ERROR_MESSAGE = "An exception was thrown while parsing the date string."
 private val dateFormat: DateFormat = SimpleDateFormat(DATE_FORMAT)
 
-suspend fun String.parseDate(): Either<DateParseError, Date> =
-		Either.catch({ e -> DateParseError(e.message ?: DEFAULT_DATE_PARSE_ERROR_MESSAGE) }) {
+suspend fun String.parseDate(): Either<DomainError, Date> =
+		Either.catch({ throwable: Throwable ->
+			throwable.message?.let { DateParseError(it) } ?: DateParseError()
+		}) {
 			dateFormat.parse(this)
 		}

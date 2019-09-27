@@ -19,15 +19,13 @@ package com.sparetimedevs.win.trigger
 import arrow.core.Left
 import arrow.core.Right
 import arrow.fx.IO
-import arrow.fx.extensions.fx
 import com.microsoft.azure.functions.ExecutionContext
 import com.microsoft.azure.functions.HttpRequestMessage
 import com.microsoft.azure.functions.HttpStatus
 import com.sparetimedevs.HttpResponseMessageMock
-import com.sparetimedevs.suspendmongo.result.Error
 import com.sparetimedevs.test.data.candidateLois
+import com.sparetimedevs.win.model.DomainError
 import com.sparetimedevs.win.service.CandidateService
-import com.sparetimedevs.win.util.DateParseError
 import com.sparetimedevs.win.util.parseDate
 import io.kotlintest.matchers.string.contain
 import io.kotlintest.shouldBe
@@ -56,7 +54,7 @@ class PutNextCandidateTest : BehaviorSpec({
 				val candidateService = mockk<CandidateService>()
 
 				coEvery { dateString.parseDate() } returns Right(Date.from(Instant.ofEpochSecond(1567202400L)))
-				every { candidateService.addDateToCandidate(candidateLois.name, date) } returns IO.fx { Right(candidateLois) }
+				every { candidateService.addDateToCandidate(candidateLois.name, date) } returns IO.just(Right(candidateLois))
 				every { request.createResponseBuilder(any()) } returns HttpResponseMessageMock.HttpResponseMessageBuilderMock(HttpStatus.NO_CONTENT)
 
 				val response = PutNextCandidate(candidateService).put(request, candidateLois.name, dateString, context)
@@ -77,16 +75,16 @@ class PutNextCandidateTest : BehaviorSpec({
 
 				every { context.logger } returns logger
 				every { logger.severe(any<String>()) } just Runs
-				val eitherContainingError = Left(Error.ServiceUnavailable())
+				val eitherContainingDomainError = Left(DomainError.ServiceUnavailable())
 				coEvery { dateString.parseDate() } returns Right(Date.from(Instant.ofEpochSecond(1567202400L)))
-				every { candidateService.addDateToCandidate(candidateLois.name, date) } returns IO.fx { eitherContainingError }
+				every { candidateService.addDateToCandidate(candidateLois.name, date) } returns IO.just(eitherContainingDomainError)
 				every { request.createResponseBuilder(any()) } returns HttpResponseMessageMock.HttpResponseMessageBuilderMock(HttpStatus.INTERNAL_SERVER_ERROR)
 
 				val response = PutNextCandidate(candidateService).put(request, candidateLois.name, dateString, context)
 
 				response.status shouldBe HttpStatus.INTERNAL_SERVER_ERROR
 				response.getHeader(CONTENT_TYPE) shouldBe CONTENT_TYPE_APPLICATION_JSON
-				response.body shouldBe contain(Error.ServiceUnavailable().message)
+				response.body shouldBe contain(DomainError.ServiceUnavailable().message)
 			}
 		}
 
@@ -102,7 +100,7 @@ class PutNextCandidateTest : BehaviorSpec({
 				every { context.logger } returns logger
 				every { logger.info(any<String>()) } just Runs
 				val errorMessage = "An exception was thrown while parsing the date string."
-				val eitherContainingError = Left(DateParseError(errorMessage))
+				val eitherContainingError = Left(DomainError.DateParseError(errorMessage))
 				coEvery { dateString.parseDate() } returns eitherContainingError
 				every { request.createResponseBuilder(any()) } returns HttpResponseMessageMock.HttpResponseMessageBuilderMock(HttpStatus.BAD_REQUEST)
 

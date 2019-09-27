@@ -16,15 +16,18 @@
 
 package com.sparetimedevs.win.service
 
+import arrow.core.Either
 import arrow.core.Left
 import arrow.core.Right
+import arrow.fx.IO
 import arrow.fx.extensions.io.unsafeRun.runBlocking
 import arrow.unsafe
-import com.sparetimedevs.suspendmongo.result.Error
 import com.sparetimedevs.test.data.candidateLois
 import com.sparetimedevs.test.data.candidates
 import com.sparetimedevs.win.algorithm.CandidateAlgorithm
 import com.sparetimedevs.win.algorithm.DetailsOfRolledDice
+import com.sparetimedevs.win.model.Candidate
+import com.sparetimedevs.win.model.DomainError
 import com.sparetimedevs.win.repository.CandidateRepository
 import io.kotlintest.fail
 import io.kotlintest.matchers.collections.shouldContainAll
@@ -45,9 +48,9 @@ class CandidateServiceTest : BehaviorSpec({
 	given("get all candidates is called") {
 		`when`("database is reachable") {
 			then( "returns all candidates") {
-				val eitherContainingCandidates = Right(candidates)
+				val ioContainingEitherContainingCandidates: IO<Either<DomainError, List<Candidate>>> = IO.just(Right(candidates))
 
-				coEvery { candidateRepository.findAll(any()) } returns eitherContainingCandidates
+				every { candidateRepository.findAll(any()) } returns ioContainingEitherContainingCandidates
 
 				unsafe { runBlocking { candidateService.getAllCandidates() } }.fold(
 						{ fail("This test case should yield a Right.") },
@@ -58,12 +61,12 @@ class CandidateServiceTest : BehaviorSpec({
 
 		`when`("database is unreachable") {
 			then( "returns error message") {
-				val eitherContainingError = Left(Error.ServiceUnavailable())
+				val ioContainingEitherContainingError: IO<Either<DomainError, List<Candidate>>> = IO.just(Left(DomainError.ServiceUnavailable()))
 
-				coEvery { candidateRepository.findAll(any()) } returns eitherContainingError
+				every { candidateRepository.findAll(any()) } returns ioContainingEitherContainingError
 
 				unsafe { runBlocking { candidateService.getAllCandidates() } }.fold(
-						{ it.message shouldBe Error.ServiceUnavailable().message },
+						{ it.message shouldBe DomainError.ServiceUnavailable().message },
 						{ fail("This test case should yield a Left.") }
 				)
 			}
@@ -73,10 +76,10 @@ class CandidateServiceTest : BehaviorSpec({
 	given("determine next candidate is called") {
 		`when`("database is reachable") {
 			then( "returns next candidate's name") {
-				val eitherContainingCandidates = Right(candidates)
+				val ioContainingEitherContainingCandidates: IO<Either<DomainError, List<Candidate>>> = IO.just(Right(candidates))
 				val detailsOfRolledDice = DetailsOfRolledDice(listOf(3, 1, 5, 1, 2, 4))
 
-				coEvery { candidateRepository.findAll(any()) } returns eitherContainingCandidates
+				every { candidateRepository.findAll(any()) } returns ioContainingEitherContainingCandidates
 				every { candidateAlgorithm.nextCandidate(any()) } returns (candidateLois to detailsOfRolledDice)
 
 				unsafe { runBlocking { candidateService.determineNextCandidate() } }.fold(
@@ -88,12 +91,12 @@ class CandidateServiceTest : BehaviorSpec({
 
 		`when`("database is unreachable") {
 			then( "returns error message") {
-				val eitherContainingError = Left(Error.ServiceUnavailable())
+				val ioContainingEitherContainingError: IO<Either<DomainError, List<Candidate>>> = IO.just(Left(DomainError.ServiceUnavailable()))
 
-				coEvery { candidateRepository.findAll(any()) } returns eitherContainingError
+				every { candidateRepository.findAll(any()) } returns ioContainingEitherContainingError
 
 				unsafe { runBlocking { candidateService.getAllCandidates() } }.fold(
-						{ it.message shouldBe Error.ServiceUnavailable().message },
+						{ it.message shouldBe DomainError.ServiceUnavailable().message },
 						{ fail("This test case should yield a Left.") }
 				)
 			}
@@ -118,12 +121,12 @@ class CandidateServiceTest : BehaviorSpec({
 
 		`when`("database is unreachable") {
 			then( "returns error message") {
-				val eitherContainingError = Left(Error.ServiceUnavailable())
+				val eitherContainingError = Left(DomainError.ServiceUnavailable())
 
 				coEvery { candidateRepository.findOneByName(any()) } returns eitherContainingError
 
 				unsafe { runBlocking { candidateService.getAllCandidates() } }.fold(
-						{ it.message shouldBe Error.ServiceUnavailable().message },
+						{ it.message shouldBe DomainError.ServiceUnavailable().message },
 						{ fail("This test case should yield a Left.") }
 				)
 			}

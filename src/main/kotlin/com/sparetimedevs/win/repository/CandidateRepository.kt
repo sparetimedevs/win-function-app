@@ -17,6 +17,8 @@
 package com.sparetimedevs.win.repository
 
 import arrow.core.Either
+import arrow.fx.IO
+import arrow.fx.extensions.fx
 import com.sparetimedevs.suspendmongo.Database
 import com.sparetimedevs.suspendmongo.crud.createOne
 import com.sparetimedevs.suspendmongo.crud.deleteAll
@@ -25,8 +27,8 @@ import com.sparetimedevs.suspendmongo.crud.readAll
 import com.sparetimedevs.suspendmongo.crud.readOne
 import com.sparetimedevs.suspendmongo.crud.updateOne
 import com.sparetimedevs.suspendmongo.getCollection
-import com.sparetimedevs.suspendmongo.result.Error
 import com.sparetimedevs.win.model.Candidate
+import com.sparetimedevs.win.model.DomainError
 import org.bson.conversions.Bson
 import org.bson.types.ObjectId
 
@@ -34,17 +36,20 @@ class CandidateRepository(database: Database) {
 
 	private val collection = getCollection<Candidate>(database)
 
-	suspend fun findAll(): Either<Error, List<Candidate>> = collection.readAll().toEither()
+	suspend fun findAll(): Either<DomainError, List<Candidate>> = collection.readAll().toEither()
 
-	suspend fun findAll(sort: Bson): Either<Error, List<Candidate>> = collection.readAll(sort).toEither()
+	fun findAll(sort: Bson): IO<Either<DomainError, List<Candidate>>> =
+			IO.fx {
+				!effect { collection.readAll(sort).toEither() }
+			}
 
-	suspend fun findOneByName(name: String): Either<Error, Candidate> = collection.readOne("name" to name).toEither()
+	suspend fun findOneByName(name: String): Either<DomainError, Candidate> = collection.readOne("name" to name).toEither()
 
-	suspend fun deleteAll(): Either<Error, Boolean> = collection.deleteAll().toEither()
+	suspend fun deleteAll(): Either<DomainError, Boolean> = collection.deleteAll().toEither()
 
-	suspend fun deleteOneById(id: ObjectId): Either<Error, Candidate> = collection.deleteOne(id).toEither()
+	suspend fun deleteOneById(id: ObjectId): Either<DomainError, Candidate> = collection.deleteOne(id).toEither()
 
-	suspend fun save(candidate: Candidate): Either<Error, Candidate> = collection.createOne(candidate).toEither()
+	suspend fun save(candidate: Candidate): Either<DomainError, Candidate> = collection.createOne(candidate).toEither()
 
-	suspend fun update(id: ObjectId, candidate: Candidate): Either<Error, Candidate> = collection.updateOne(id, candidate).toEither()
+	suspend fun update(id: ObjectId, candidate: Candidate): Either<DomainError, Candidate> = collection.updateOne(id, candidate).toEither()
 }
