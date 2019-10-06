@@ -31,6 +31,7 @@ import com.sparetimedevs.win.algorithm.DetailsOfAlgorithm
 import com.sparetimedevs.win.model.Candidate
 import com.sparetimedevs.win.model.NextCandidateViewModel
 import com.sparetimedevs.win.service.CandidateService
+import com.sparetimedevs.win.util.toViewModel
 import java.util.Optional
 
 class GetNextCandidate(
@@ -50,10 +51,7 @@ class GetNextCandidate(
 	): HttpResponseMessage = unsafe { runBlocking { candidateService.determineNextCandidate() } }.fold(
 			{
 				context.logger.severe("$ERROR_MESSAGE$it")
-				request.createResponseBuilder(HttpStatus.INTERNAL_SERVER_ERROR)
-						.body("$ERROR_MESSAGE$it")
-						.header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
-						.build()
+				request.createResponse(it)
 			},
 			{
 				request.createResponseBuilder(HttpStatus.OK)
@@ -68,8 +66,4 @@ class GetNextCandidate(
         private const val TRIGGER_NAME = "getNextCandidate"
         private const val ROUTE = "candidates/next"
     }
-}
-
-fun Pair<Candidate, DetailsOfAlgorithm>.toViewModel(): NextCandidateViewModel {
-	return NextCandidateViewModel(this.first.name, this.second)
 }

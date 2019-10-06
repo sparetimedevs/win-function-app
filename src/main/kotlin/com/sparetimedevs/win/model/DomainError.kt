@@ -16,22 +16,15 @@
 
 package com.sparetimedevs.win.model
 
-import com.sparetimedevs.test.data.candidates
-import io.kotlintest.shouldBe
-import io.kotlintest.specs.BehaviorSpec
-
-class CandidateKtTest : BehaviorSpec({
-
-	given("a list of candidates") {
-		`when`("toViewModel") {
-			then("returns a list of candidate view models") {
-				val candidateViewModels = candidates.toViewModel()
-
-				candidateViewModels.forEachIndexed { index, candidateViewModel ->
-					candidateViewModel.name shouldBe candidates[index].name
-					candidateViewModel.turns shouldBe candidates[index].turns
-				}
-			}
-		}
-	}
-})
+sealed class DomainError(open val message: String) {
+	
+	data class ToViewModelError(override val message: String = "An exception was thrown while converting to view model.") : DomainError(message)
+	
+	data class DateParseError(override val message: String = "An exception was thrown while parsing the date string.") : DomainError(message)
+	
+	data class EntityNotFound(override val message: String = "Entity not found.") : DomainError(message)
+	
+	data class ServiceUnavailable(override val message: String = "The service is unavailable.") : DomainError(message)
+	
+	data class UnknownError(override val message: String = "An unknown error occurred.") : DomainError(message)
+}

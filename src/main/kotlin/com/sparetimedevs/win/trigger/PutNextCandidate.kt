@@ -63,10 +63,7 @@ class PutNextCandidate(
 			    unsafe { runBlocking { candidateService.addDateToCandidate(name, it) } }.fold(
 					    {
 						    context.logger.severe("$ERROR_MESSAGE${it.message}")
-						    request.createResponseBuilder(HttpStatus.INTERNAL_SERVER_ERROR)
-								    .body("$ERROR_MESSAGE${it.message}")
-								    .header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
-								    .build()
+						    request.createResponse(it)
 					    },
 					    {
 						    request.createResponseBuilder(HttpStatus.NO_CONTENT)

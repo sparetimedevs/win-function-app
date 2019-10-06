@@ -16,6 +16,7 @@
 
 package com.sparetimedevs.win.util
 
+import com.sparetimedevs.win.model.DomainError
 import io.kotlintest.fail
 import io.kotlintest.matchers.types.shouldBeInstanceOf
 import io.kotlintest.shouldBe
@@ -41,7 +42,7 @@ class DateParserKtTest : BehaviorSpec({
 			then("returns correct date object") {
 				"boom".parseDate().fold(
 						{
-							it.shouldBeInstanceOf<DateParseError>()
+							it.shouldBeInstanceOf<DomainError.DateParseError>()
 						},
 						{
 							fail("This test case should yield a Left.")
