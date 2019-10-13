@@ -16,15 +16,15 @@
 
 package com.sparetimedevs.win.trigger
 
-import arrow.core.Left
-import arrow.core.Right
 import arrow.fx.IO
 import com.microsoft.azure.functions.ExecutionContext
 import com.microsoft.azure.functions.HttpRequestMessage
 import com.microsoft.azure.functions.HttpStatus
 import com.sparetimedevs.HttpResponseMessageMock
 import com.sparetimedevs.test.data.candidateLois
+import com.sparetimedevs.win.algorithm.DetailsOfAlgorithm
 import com.sparetimedevs.win.algorithm.DetailsOfRolledDice
+import com.sparetimedevs.win.model.Candidate
 import com.sparetimedevs.win.model.DomainError
 import com.sparetimedevs.win.service.CandidateService
 import com.sparetimedevs.win.util.toViewModel
@@ -39,44 +39,44 @@ import java.util.Optional
 import java.util.logging.Logger
 
 class GetNextCandidateTest : BehaviorSpec({
-
-	given("get is called") {
-		`when`("database is reachable") {
-			then( "returns next candidate's name") {
-				val request = mockk<HttpRequestMessage<Optional<String>>>()
-				val context = mockk<ExecutionContext>()
-				val candidateService = mockk<CandidateService>()
-				val detailsOfRolledDice = DetailsOfRolledDice(listOf(3, 1, 5, 1, 2, 4))
-				val ioContainingEitherContainingCandidateAndDetailsOfAlgorithm = IO.just(Right(candidateLois to detailsOfRolledDice))
-				every { candidateService.determineNextCandidate() } returns ioContainingEitherContainingCandidateAndDetailsOfAlgorithm
-				every { request.createResponseBuilder(any()) } returns HttpResponseMessageMock.HttpResponseMessageBuilderMock(HttpStatus.OK)
-
-				val response = GetNextCandidate(candidateService).get(request, context)
-
-				response.status shouldBe HttpStatus.OK
-				response.getHeader(CONTENT_TYPE) shouldBe CONTENT_TYPE_APPLICATION_JSON
-				response.body shouldBe (candidateLois to detailsOfRolledDice).toViewModel().toString()
-			}
-		}
-
-		`when`("database is unreachable") {
-			then( "returns error message") {
-				val request = mockk<HttpRequestMessage<Optional<String>>>()
-				val context = mockk<ExecutionContext>()
-				val logger = mockk<Logger>()
-				val candidateService = mockk<CandidateService>()
-				every { context.logger } returns logger
-				every { logger.severe(any<String>()) } just Runs
-				val ioContainingEitherContainingDomainError = IO.just(Left(DomainError.ServiceUnavailable()))
-				every { candidateService.determineNextCandidate() } returns ioContainingEitherContainingDomainError
-				every { request.createResponseBuilder(any()) } returns HttpResponseMessageMock.HttpResponseMessageBuilderMock(HttpStatus.INTERNAL_SERVER_ERROR)
-
-				val response = GetNextCandidate(candidateService).get(request, context)
-
-				response.status shouldBe HttpStatus.INTERNAL_SERVER_ERROR
-				response.getHeader(CONTENT_TYPE) shouldBe CONTENT_TYPE_APPLICATION_JSON
-				response.body shouldBe contain(DomainError.ServiceUnavailable().message)
-			}
-		}
-	}
+    
+    given("get is called") {
+        `when`("database is reachable") {
+            then( "returns next candidate's name") {
+                val request = mockk<HttpRequestMessage<Optional<String>>>()
+                val context = mockk<ExecutionContext>()
+                val candidateService = mockk<CandidateService>()
+                val detailsOfRolledDice = DetailsOfRolledDice(listOf(3, 1, 5, 1, 2, 4))
+                val ioContainingCandidateAndDetailsOfAlgorithm = IO.just(candidateLois to detailsOfRolledDice)
+                every { candidateService.determineNextCandidate() } returns ioContainingCandidateAndDetailsOfAlgorithm
+                every { request.createResponseBuilder(any()) } returns HttpResponseMessageMock.HttpResponseMessageBuilderMock(HttpStatus.OK)
+                
+                val response = GetNextCandidate(candidateService).get(request, context)
+                
+                response.status shouldBe HttpStatus.OK
+                response.getHeader(CONTENT_TYPE) shouldBe CONTENT_TYPE_APPLICATION_JSON
+                response.body shouldBe (candidateLois to detailsOfRolledDice).toViewModel().toString()
+            }
+        }
+        
+        `when`("database is unreachable") {
+            then( "returns error message") {
+                val request = mockk<HttpRequestMessage<Optional<String>>>()
+                val context = mockk<ExecutionContext>()
+                val logger = mockk<Logger>()
+                val candidateService = mockk<CandidateService>()
+                every { context.logger } returns logger
+                every { logger.severe(any<String>()) } just Runs
+                val ioContainingDomainError = IO.raiseError<Pair<Candidate, DetailsOfAlgorithm>>(DomainError.ServiceUnavailable())
+                every { candidateService.determineNextCandidate() } returns ioContainingDomainError
+                every { request.createResponseBuilder(any()) } returns HttpResponseMessageMock.HttpResponseMessageBuilderMock(HttpStatus.INTERNAL_SERVER_ERROR)
+                
+                val response = GetNextCandidate(candidateService).get(request, context)
+                
+                response.status shouldBe HttpStatus.INTERNAL_SERVER_ERROR
+                response.getHeader(CONTENT_TYPE) shouldBe CONTENT_TYPE_APPLICATION_JSON
+                response.body shouldBe contain(SERVICE_UNAVAILABLE_ERROR_MESSAGE)
+            }
+        }
+    }
 })

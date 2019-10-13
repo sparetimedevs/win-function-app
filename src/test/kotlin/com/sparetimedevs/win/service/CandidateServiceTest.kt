@@ -16,7 +16,6 @@
 
 package com.sparetimedevs.win.service
 
-import arrow.core.Either
 import arrow.core.Left
 import arrow.core.Right
 import arrow.fx.IO
@@ -32,6 +31,7 @@ import com.sparetimedevs.win.repository.CandidateRepository
 import io.kotlintest.fail
 import io.kotlintest.matchers.collections.shouldContainAll
 import io.kotlintest.shouldBe
+import io.kotlintest.shouldThrow
 import io.kotlintest.specs.BehaviorSpec
 import io.mockk.coEvery
 import io.mockk.every
@@ -40,96 +40,93 @@ import java.time.Instant
 import java.util.Date
 
 class CandidateServiceTest : BehaviorSpec({
+    
+    val candidateAlgorithm = mockk<CandidateAlgorithm>()
+    val candidateRepository = mockk<CandidateRepository>()
+    val candidateService = CandidateService(candidateAlgorithm, candidateRepository)
+    
+    given("get all candidates is called") {
+        `when`("database is reachable") {
+            then( "returns all candidates") {
+                val ioContainingCandidates: IO<List<Candidate>> = IO.just(candidates)
+                
+                every { candidateRepository.findAll(any()) } returns ioContainingCandidates
+                
+                val result = candidateService.getAllCandidates().unsafeRunSync()
+                
+                result shouldContainAll candidates
+            }
+        }
+        
+        `when`("database is unreachable") {
+            then( "returns IO containing the error") {
+                val ioContainingError: IO<List<Candidate>> = IO.raiseError(DomainError.ServiceUnavailable())
+                
+                every { candidateRepository.findAll(any()) } returns ioContainingError
+                
+                shouldThrow<DomainError.ServiceUnavailable> {
+                    candidateService.getAllCandidates().unsafeRunSync()
+                }
+            }
+        }
+    }
+    
+    given("determine next candidate is called") {
+        `when`("database is reachable") {
+            then( "returns next candidate's name") {
+                val ioContainingCandidates: IO<List<Candidate>> = IO.just(candidates)
+                val detailsOfRolledDice = DetailsOfRolledDice(listOf(3, 1, 5, 1, 2, 4))
 
-	val candidateAlgorithm = mockk<CandidateAlgorithm>()
-	val candidateRepository = mockk<CandidateRepository>()
-	val candidateService = CandidateService(candidateAlgorithm, candidateRepository)
+                every { candidateRepository.findAll(any()) } returns ioContainingCandidates
+                every { candidateAlgorithm.nextCandidate(any()) } returns (candidateLois to detailsOfRolledDice)
+                
+                val result = candidateService.determineNextCandidate().unsafeRunSync()
 
-	given("get all candidates is called") {
-		`when`("database is reachable") {
-			then( "returns all candidates") {
-				val ioContainingEitherContainingCandidates: IO<Either<DomainError, List<Candidate>>> = IO.just(Right(candidates))
+                result shouldBe (candidateLois to detailsOfRolledDice)
+            }
+        }
 
-				every { candidateRepository.findAll(any()) } returns ioContainingEitherContainingCandidates
+        `when`("database is unreachable") {
+            then( "returns IO containing the error") {
+                val ioContainingError: IO<List<Candidate>> = IO.raiseError(DomainError.ServiceUnavailable())
 
-				unsafe { runBlocking { candidateService.getAllCandidates() } }.fold(
-						{ fail("This test case should yield a Right.") },
-						{ it shouldContainAll candidates }
-				)
-			}
-		}
+                every { candidateRepository.findAll(any()) } returns ioContainingError
+    
+                shouldThrow<DomainError.ServiceUnavailable> {
+                    candidateService.determineNextCandidate().unsafeRunSync()
+                }
+            }
+        }
+    }
 
-		`when`("database is unreachable") {
-			then( "returns error message") {
-				val ioContainingEitherContainingError: IO<Either<DomainError, List<Candidate>>> = IO.just(Left(DomainError.ServiceUnavailable()))
+    given("add date to candidate is called") {
+        `when`("database is reachable") {
+            then( "returns candidate") {
+                val eitherContainingCandidateLois = Right(candidateLois)
+                val date = Date.from(Instant.ofEpochSecond(1567202400L))
 
-				every { candidateRepository.findAll(any()) } returns ioContainingEitherContainingError
+                coEvery { candidateRepository.findOneByName(any()) } returns eitherContainingCandidateLois
+                coEvery { candidateRepository.update(any(), any()) } returns eitherContainingCandidateLois
 
-				unsafe { runBlocking { candidateService.getAllCandidates() } }.fold(
-						{ it.message shouldBe DomainError.ServiceUnavailable().message },
-						{ fail("This test case should yield a Left.") }
-				)
-			}
-		}
-	}
+                unsafe { runBlocking { candidateService.addDateToCandidate(candidateLois.name, date) } }.fold(
+                        { fail("This test case should yield a Right.") },
+                        { it shouldBe  candidateLois }
+                )
+            }
+        }
 
-	given("determine next candidate is called") {
-		`when`("database is reachable") {
-			then( "returns next candidate's name") {
-				val ioContainingEitherContainingCandidates: IO<Either<DomainError, List<Candidate>>> = IO.just(Right(candidates))
-				val detailsOfRolledDice = DetailsOfRolledDice(listOf(3, 1, 5, 1, 2, 4))
+        `when`("database is unreachable") {
+            then( "returns error message") {
+                val eitherContainingError = Left(DomainError.ServiceUnavailable())
+                val date = Date.from(Instant.ofEpochSecond(1567202400L))
+    
+                coEvery { candidateRepository.findOneByName(any()) } returns eitherContainingError
 
-				every { candidateRepository.findAll(any()) } returns ioContainingEitherContainingCandidates
-				every { candidateAlgorithm.nextCandidate(any()) } returns (candidateLois to detailsOfRolledDice)
-
-				unsafe { runBlocking { candidateService.determineNextCandidate() } }.fold(
-						{ fail("This test case should yield a Right.") },
-						{ it shouldBe (candidateLois to detailsOfRolledDice) }
-				)
-			}
-		}
-
-		`when`("database is unreachable") {
-			then( "returns error message") {
-				val ioContainingEitherContainingError: IO<Either<DomainError, List<Candidate>>> = IO.just(Left(DomainError.ServiceUnavailable()))
-
-				every { candidateRepository.findAll(any()) } returns ioContainingEitherContainingError
-
-				unsafe { runBlocking { candidateService.getAllCandidates() } }.fold(
-						{ it.message shouldBe DomainError.ServiceUnavailable().message },
-						{ fail("This test case should yield a Left.") }
-				)
-			}
-		}
-	}
-
-	given("add date to candidate is called") {
-		`when`("database is reachable") {
-			then( "returns candidate") {
-				val eitherContainingCandidateLois = Right(candidateLois)
-				val date = Date.from(Instant.ofEpochSecond(1567202400L))
-
-				coEvery { candidateRepository.findOneByName(any()) } returns eitherContainingCandidateLois
-				coEvery { candidateRepository.update(any(), any()) } returns eitherContainingCandidateLois
-
-				unsafe { runBlocking { candidateService.addDateToCandidate(candidateLois.name, date) } }.fold(
-						{ fail("This test case should yield a Right.") },
-						{ it shouldBe  candidateLois }
-				)
-			}
-		}
-
-		`when`("database is unreachable") {
-			then( "returns error message") {
-				val eitherContainingError = Left(DomainError.ServiceUnavailable())
-
-				coEvery { candidateRepository.findOneByName(any()) } returns eitherContainingError
-
-				unsafe { runBlocking { candidateService.getAllCandidates() } }.fold(
-						{ it.message shouldBe DomainError.ServiceUnavailable().message },
-						{ fail("This test case should yield a Left.") }
-				)
-			}
-		}
-	}
+                unsafe { runBlocking { candidateService.addDateToCandidate(candidateLois.name, date) } }.fold(
+                        { it.message shouldBe DomainError.ServiceUnavailable().message },
+                        { fail("This test case should yield a Left.") }
+                )
+            }
+        }
+    }
 })

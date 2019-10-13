@@ -16,7 +16,6 @@
 
 package com.sparetimedevs.win.trigger
 
-import arrow.core.Either
 import arrow.fx.IO
 import arrow.syntax.function.pipe
 import com.microsoft.azure.functions.ExecutionContext
@@ -30,60 +29,50 @@ import com.microsoft.azure.functions.annotation.HttpTrigger
 import com.sparetimedevs.win.ServiceLocator
 import com.sparetimedevs.win.model.Candidate
 import com.sparetimedevs.win.model.CandidateViewModel
-import com.sparetimedevs.win.model.DomainError
 import com.sparetimedevs.win.service.CandidateService
-import com.sparetimedevs.win.util.toViewModel
+import com.sparetimedevs.win.util.toViewModels
 import java.util.Optional
 
 class GetAllCandidates(
-		private val candidateService: CandidateService = ServiceLocator.defaultInstance.candidateService
+        private val candidateService: CandidateService = ServiceLocator.defaultInstance.candidateService
 ) {
-	
-	@FunctionName(FUNCTION_NAME)
-	fun get(
-			@HttpTrigger(
-					name = TRIGGER_NAME,
-					methods = [HttpMethod.GET],
-					route = ROUTE,
-					authLevel = AuthorizationLevel.FUNCTION
-			)
-			request: HttpRequestMessage<Optional<String>>,
-			context: ExecutionContext
-	): HttpResponseMessage =
-			candidateService.getAllCandidates()
-					.pipe { ioOfEitherDomainErrorOrCandidates: IO<Either<DomainError, List<Candidate>>> ->
-						ioOfEitherDomainErrorOrCandidates.toViewModel()
-					}
-					.attempt()
-					.unsafeRunSync()
-					.fold(
-							{ throwable: Throwable ->
-								context.logger.severe("$ERROR_MESSAGE$throwable")
-								request.createResponse(throwable)
-							},
-							{ eitherDomainErrorOrCandidates: Either<DomainError, List<CandidateViewModel>> ->
-								eitherDomainErrorOrCandidates
-										.fold(
-												{ domainError: DomainError ->
-													context.logger.severe("$ERROR_MESSAGE$domainError")
-													request.createResponse(domainError)
-												},
-												{ candidates: List<CandidateViewModel> ->
-													request.createResponse(candidates)
-												}
-										)
-							}
-					)
-	
-	companion object {
-		private const val FUNCTION_NAME = "GetAllCandidates"
-		private const val TRIGGER_NAME = "getAllCandidates"
-		private const val ROUTE = "candidates"
-	}
+    
+    @FunctionName(FUNCTION_NAME)
+    fun get(
+            @HttpTrigger(
+                    name = TRIGGER_NAME,
+                    methods = [HttpMethod.GET],
+                    route = ROUTE,
+                    authLevel = AuthorizationLevel.FUNCTION
+            )
+            request: HttpRequestMessage<Optional<String>>,
+            context: ExecutionContext
+    ): HttpResponseMessage =
+            candidateService.getAllCandidates()
+                    .pipe { ioOfEitherDomainErrorOrCandidates: IO<List<Candidate>> ->
+                        ioOfEitherDomainErrorOrCandidates.toViewModels()
+                    }
+                    .attempt()
+                    .unsafeRunSync()
+                    .fold(
+                            { throwable: Throwable ->
+                                context.logger.severe("$ERROR_MESSAGE$throwable")
+                                request.createResponse(throwable)
+                            },
+                            { candidates: List<CandidateViewModel> ->
+                                request.createResponse(candidates)
+                            }
+                    )
+    
+    companion object {
+        private const val FUNCTION_NAME = "GetAllCandidates"
+        private const val TRIGGER_NAME = "getAllCandidates"
+        private const val ROUTE = "candidates"
+    }
 }
 
 private fun HttpRequestMessage<Optional<String>>.createResponse(candidates: List<CandidateViewModel>): HttpResponseMessage =
-		this.createResponseBuilder(HttpStatus.OK)
-				.body(candidates)
-				.header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
-				.build()
+        this.createResponseBuilder(HttpStatus.OK)
+                .body(candidates)
+                .header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
+                .build()

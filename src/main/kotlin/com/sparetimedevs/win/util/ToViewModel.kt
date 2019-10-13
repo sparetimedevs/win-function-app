@@ -16,19 +16,11 @@
 
 package com.sparetimedevs.win.util
 
-import arrow.Kind
 import arrow.core.Either
-import arrow.core.ForListK
-import arrow.core.extensions.either.applicative.applicative
-import arrow.core.extensions.either.monad.flatten
-import arrow.core.extensions.either.traverse.sequence
-import arrow.core.extensions.list.traverse.sequence
-import arrow.core.extensions.listk.traverse.sequence
+import arrow.core.extensions.list.traverse.traverse
 import arrow.core.fix
 import arrow.fx.IO
 import arrow.fx.extensions.io.applicative.applicative
-import arrow.fx.extensions.io.applicative.map
-import arrow.fx.extensions.io.monad.flatten
 import arrow.fx.fix
 import com.sparetimedevs.win.algorithm.DetailsOfAlgorithm
 import com.sparetimedevs.win.model.Candidate
@@ -37,49 +29,26 @@ import com.sparetimedevs.win.model.DomainError
 import com.sparetimedevs.win.model.DomainError.ToViewModelError
 import com.sparetimedevs.win.model.NextCandidateViewModel
 
-fun IO<Either<DomainError, List<Candidate>>>.toViewModel(): IO<Either<DomainError, List<CandidateViewModel>>> =
-		this.map { eitherDomainErrorOrCandidates: Either<DomainError, List<Candidate>> ->
-			
-			val eitherDomainErrorOrIoOfBoxedEitherDomainErrorOrCandidateViewModels: Either<DomainError, IO<Kind<ForListK, Either<DomainError, CandidateViewModel>>>> =
-					eitherDomainErrorOrCandidates
-							.map { candidates: List<Candidate> ->
-								candidates.map { candidate: Candidate ->
-									IO.effect { candidate.toViewModel() }
-								}.sequence(IO.applicative()).fix()
-							}
-			
-			val ioOfEitherDomainErrorOrBoxedCandidateViewModels: IO<Either<DomainError, Kind<ForListK, CandidateViewModel>>> =
-					eitherDomainErrorOrIoOfBoxedEitherDomainErrorOrCandidateViewModels
-							.map { ioOfBoxedEitherDomainErrorOrCandidateViewModels ->
-								ioOfBoxedEitherDomainErrorOrCandidateViewModels
-										.map{ boxedEitherDomainErrorOrCandidateViewModels: Kind<ForListK, Either<DomainError, CandidateViewModel>> ->
-											boxedEitherDomainErrorOrCandidateViewModels.sequence(Either.applicative()).fix()
-										}
-							}.sequence(IO.applicative())
-							.map {
-								it.flatten()
-							}
-			
-			val ioOfEitherDomainErrorOrCandidateViewModels: IO<Either<DomainError, List<CandidateViewModel>>> =
-					ioOfEitherDomainErrorOrBoxedCandidateViewModels
-							.map { eitherDomainErrorOrBoxedCandidateViewModels: Either<DomainError, Kind<ForListK, CandidateViewModel>> ->
-								eitherDomainErrorOrBoxedCandidateViewModels
-										.map { boxedCandidateViewModels ->
-											val candidateViewModels: List<CandidateViewModel> = boxedCandidateViewModels.fix()
-											candidateViewModels
-										}
-							}
-			
-			ioOfEitherDomainErrorOrCandidateViewModels
-		}.flatten()
+fun IO<List<Candidate>>.toViewModels(): IO<List<CandidateViewModel>> =
+        this.flatMap { candidates: List<Candidate> ->
+            candidates.traverse(IO.applicative(), ::toViewModel).fix()
+                    .map {
+                        it.fix()
+                    }
+        }
+
+fun toViewModel(candidate: Candidate): IO<CandidateViewModel> =
+        IO.effect {
+            candidate.toViewModel()
+        }.flattenRaisingError()
 
 suspend fun Candidate.toViewModel(): Either<DomainError, CandidateViewModel> =
-		Either.catch({ throwable: Throwable ->
-			throwable.message?.let { ToViewModelError(it) } ?: ToViewModelError()
-		}) {
-			CandidateViewModel(name, firstAttendanceAndTurns.last(), firstAttendanceAndTurns.dropLast(1))
-		}
+        Either.catch({ throwable: Throwable ->
+            throwable.message?.let { ToViewModelError(it) } ?: ToViewModelError()
+        }) {
+            CandidateViewModel(name, firstAttendanceAndTurns.last(), firstAttendanceAndTurns.dropLast(1))
+        }
 
 fun Pair<Candidate, DetailsOfAlgorithm>.toViewModel(): NextCandidateViewModel {
-	return NextCandidateViewModel(this.first.name, this.second)
+    return NextCandidateViewModel(this.first.name, this.second)
 }
