@@ -18,7 +18,6 @@ package com.sparetimedevs.win.service
 
 import arrow.core.Either
 import arrow.core.Left
-import arrow.core.Right
 import arrow.fx.IO
 import arrow.fx.extensions.fx
 import com.sparetimedevs.win.algorithm.CandidateAlgorithm
@@ -34,22 +33,15 @@ class CandidateService(
 		private val candidateRepository: CandidateRepository
 ) {
 
-	fun getAllCandidates(): IO<Either<DomainError, List<Candidate>>> =
+	fun getAllCandidates(): IO<List<Candidate>> =
 			candidateRepository.findAll(defaultSorting)
-
-	fun determineNextCandidate(): IO<Either<DomainError, Pair<Candidate, DetailsOfAlgorithm>>> =
+	
+	fun determineNextCandidate(): IO<Pair<Candidate, DetailsOfAlgorithm>> =
 			IO.fx {
 				val candidates = !getAllCandidates()
-				candidates.fold(
-						{
-							Left(it)
-						},
-						{
-							Right(candidateAlgorithm.nextCandidate(it))
-						}
-				)
+				candidateAlgorithm.nextCandidate(candidates)
 			}
-
+	
 	fun addDateToCandidate(name: String, date: Date): IO<Either<DomainError, Candidate>> =
 			IO.fx {
 				val candidate = !effect { candidateRepository.findOneByName(name) }
