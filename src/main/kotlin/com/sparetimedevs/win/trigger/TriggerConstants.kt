@@ -21,7 +21,6 @@ import org.bson.conversions.Bson
 
 const val CONTENT_TYPE = "Content-Type"
 const val CONTENT_TYPE_APPLICATION_JSON = "application/json"
-const val ERROR_MESSAGE = "An error occurred while find all candidates. The error is: "
 const val FIRST_ATTENDANCE_AND_TURNS_FIELD = "firstAttendanceAndTurns"
 const val NAME_FIELD = "name"
 private val sortByFirstAttendanceAndTurnsFieldDescending: Bson = Sorts.descending(FIRST_ATTENDANCE_AND_TURNS_FIELD)

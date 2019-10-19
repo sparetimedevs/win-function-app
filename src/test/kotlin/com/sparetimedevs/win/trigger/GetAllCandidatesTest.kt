@@ -29,12 +29,9 @@ import com.sparetimedevs.win.util.toViewModels
 import io.kotlintest.matchers.string.contain
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.BehaviorSpec
-import io.mockk.Runs
 import io.mockk.every
-import io.mockk.just
 import io.mockk.mockk
 import java.util.Optional
-import java.util.logging.Logger
 
 class GetAllCandidatesTest : BehaviorSpec({
     
@@ -45,6 +42,7 @@ class GetAllCandidatesTest : BehaviorSpec({
                 val context = mockk<ExecutionContext>()
                 val candidateService = mockk<CandidateService>()
                 val ioContainingCandidates = IO.just(candidates)
+                
                 every { candidateService.getAllCandidates() } returns ioContainingCandidates
                 every { request.createResponseBuilder(any()) } returns HttpResponseMessageMock.HttpResponseMessageBuilderMock(HttpStatus.OK)
                 
@@ -60,12 +58,10 @@ class GetAllCandidatesTest : BehaviorSpec({
             then( "returns error message") {
                 val request = mockk<HttpRequestMessage<Optional<String>>>()
                 val context = mockk<ExecutionContext>()
-                val logger = mockk<Logger>()
                 val candidateService = mockk<CandidateService>()
-                every { context.logger } returns logger
-                every { logger.severe(any<String>()) } just Runs
-                val ioContainingEitherContainingDomainError = IO.raiseError<List<Candidate>>(DomainError.ServiceUnavailable())
-                every { candidateService.getAllCandidates() } returns ioContainingEitherContainingDomainError
+                val ioContainingDomainError = IO.raiseError<List<Candidate>>(DomainError.ServiceUnavailable())
+                
+                every { candidateService.getAllCandidates() } returns ioContainingDomainError
                 every { request.createResponseBuilder(any()) } returns HttpResponseMessageMock.HttpResponseMessageBuilderMock(HttpStatus.INTERNAL_SERVER_ERROR)
                 
                 val response = GetAllCandidates(candidateService).get(request, context)

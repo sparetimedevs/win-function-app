@@ -16,11 +16,7 @@
 
 package com.sparetimedevs.win.service
 
-import arrow.core.Left
-import arrow.core.Right
 import arrow.fx.IO
-import arrow.fx.extensions.io.unsafeRun.runBlocking
-import arrow.unsafe
 import com.sparetimedevs.test.data.candidateLois
 import com.sparetimedevs.test.data.candidates
 import com.sparetimedevs.win.algorithm.CandidateAlgorithm
@@ -28,12 +24,10 @@ import com.sparetimedevs.win.algorithm.DetailsOfRolledDice
 import com.sparetimedevs.win.model.Candidate
 import com.sparetimedevs.win.model.DomainError
 import com.sparetimedevs.win.repository.CandidateRepository
-import io.kotlintest.fail
 import io.kotlintest.matchers.collections.shouldContainAll
 import io.kotlintest.shouldBe
 import io.kotlintest.shouldThrow
 import io.kotlintest.specs.BehaviorSpec
-import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import java.time.Instant
@@ -102,30 +96,28 @@ class CandidateServiceTest : BehaviorSpec({
     given("add date to candidate is called") {
         `when`("database is reachable") {
             then( "returns candidate") {
-                val eitherContainingCandidateLois = Right(candidateLois)
+                val ioContainingCandidateLois = IO.just(candidateLois)
                 val date = Date.from(Instant.ofEpochSecond(1567202400L))
 
-                coEvery { candidateRepository.findOneByName(any()) } returns eitherContainingCandidateLois
-                coEvery { candidateRepository.update(any(), any()) } returns eitherContainingCandidateLois
-
-                unsafe { runBlocking { candidateService.addDateToCandidate(candidateLois.name, date) } }.fold(
-                        { fail("This test case should yield a Right.") },
-                        { it shouldBe  candidateLois }
-                )
+                every { candidateRepository.findOneByName(any()) } returns ioContainingCandidateLois
+                every { candidateRepository.update(any(), any()) } returns ioContainingCandidateLois
+                
+                val result = candidateService.addDateToCandidate(candidateLois.name, date).unsafeRunSync()
+                
+                result shouldBe candidateLois
             }
         }
 
         `when`("database is unreachable") {
             then( "returns error message") {
-                val eitherContainingError = Left(DomainError.ServiceUnavailable())
+                val ioContainingError = IO.raiseError<Candidate>(DomainError.ServiceUnavailable())
                 val date = Date.from(Instant.ofEpochSecond(1567202400L))
     
-                coEvery { candidateRepository.findOneByName(any()) } returns eitherContainingError
-
-                unsafe { runBlocking { candidateService.addDateToCandidate(candidateLois.name, date) } }.fold(
-                        { it.message shouldBe DomainError.ServiceUnavailable().message },
-                        { fail("This test case should yield a Left.") }
-                )
+                every { candidateRepository.findOneByName(any()) } returns ioContainingError
+    
+                shouldThrow<DomainError.ServiceUnavailable> {
+                    candidateService.addDateToCandidate(candidateLois.name, date).unsafeRunSync()
+                }
             }
         }
     }

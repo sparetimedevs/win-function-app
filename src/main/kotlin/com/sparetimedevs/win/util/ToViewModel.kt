@@ -49,6 +49,11 @@ suspend fun Candidate.toViewModel(): Either<DomainError, CandidateViewModel> =
             CandidateViewModel(name, firstAttendanceAndTurns.last(), firstAttendanceAndTurns.dropLast(1))
         }
 
-fun Pair<Candidate, DetailsOfAlgorithm>.toViewModel(): NextCandidateViewModel {
-    return NextCandidateViewModel(this.first.name, this.second)
-}
+fun IO<Pair<Candidate, DetailsOfAlgorithm>>.toViewModel(): IO<NextCandidateViewModel> =
+        this.map {
+            it.toViewModel()
+        }
+
+fun Pair<Candidate, DetailsOfAlgorithm>.toViewModel(): NextCandidateViewModel =
+        NextCandidateViewModel(this.first.name, this.second)
+

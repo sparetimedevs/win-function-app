@@ -17,7 +17,6 @@
 package com.sparetimedevs.win.trigger
 
 import arrow.fx.IO
-import arrow.syntax.function.pipe
 import com.microsoft.azure.functions.ExecutionContext
 import com.microsoft.azure.functions.HttpMethod
 import com.microsoft.azure.functions.HttpRequestMessage
@@ -27,7 +26,6 @@ import com.microsoft.azure.functions.annotation.AuthorizationLevel
 import com.microsoft.azure.functions.annotation.FunctionName
 import com.microsoft.azure.functions.annotation.HttpTrigger
 import com.sparetimedevs.win.ServiceLocator
-import com.sparetimedevs.win.model.Candidate
 import com.sparetimedevs.win.model.CandidateViewModel
 import com.sparetimedevs.win.service.CandidateService
 import com.sparetimedevs.win.util.toViewModels
@@ -49,20 +47,16 @@ class GetAllCandidates(
             context: ExecutionContext
     ): HttpResponseMessage =
             candidateService.getAllCandidates()
-                    .pipe { ioOfEitherDomainErrorOrCandidates: IO<List<Candidate>> ->
-                        ioOfEitherDomainErrorOrCandidates.toViewModels()
-                    }
-                    .attempt()
-                    .unsafeRunSync()
-                    .fold(
+                    .toViewModels()
+                    .redeemWith(
                             { throwable: Throwable ->
-                                context.logger.severe("$ERROR_MESSAGE$throwable")
-                                request.createResponse(throwable)
+                                handleFailure(request, context, throwable)
                             },
                             { candidates: List<CandidateViewModel> ->
-                                request.createResponse(candidates)
+                                handleSuccess(request, candidates)
                             }
                     )
+                    .unsafeRunSync()
     
     companion object {
         private const val FUNCTION_NAME = "GetAllCandidates"
@@ -70,6 +64,9 @@ class GetAllCandidates(
         private const val ROUTE = "candidates"
     }
 }
+
+private fun handleSuccess(request: HttpRequestMessage<Optional<String>>, candidates: List<CandidateViewModel>): IO<HttpResponseMessage> =
+        IO { request.createResponse(candidates) }
 
 private fun HttpRequestMessage<Optional<String>>.createResponse(candidates: List<CandidateViewModel>): HttpResponseMessage =
         this.createResponseBuilder(HttpStatus.OK)

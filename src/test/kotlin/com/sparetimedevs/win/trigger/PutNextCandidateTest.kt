@@ -24,22 +24,20 @@ import com.microsoft.azure.functions.HttpRequestMessage
 import com.microsoft.azure.functions.HttpStatus
 import com.sparetimedevs.HttpResponseMessageMock
 import com.sparetimedevs.test.data.candidateLois
+import com.sparetimedevs.win.model.Candidate
 import com.sparetimedevs.win.model.DomainError
 import com.sparetimedevs.win.service.CandidateService
 import com.sparetimedevs.win.util.parseDate
 import io.kotlintest.matchers.string.contain
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.BehaviorSpec
-import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.every
-import io.mockk.just
 import io.mockk.mockk
 import io.mockk.mockkStatic
 import java.time.Instant
 import java.util.Date
 import java.util.Optional
-import java.util.logging.Logger
 
 class PutNextCandidateTest : BehaviorSpec({
     
@@ -48,16 +46,16 @@ class PutNextCandidateTest : BehaviorSpec({
             then( "returns HTTP status no content") {
                 mockkStatic("com.sparetimedevs.win.util.DateParserKt")
                 val request = mockk<HttpRequestMessage<Optional<String>>>()
+                val context = mockk<ExecutionContext>()
                 val dateString = "20190831"
                 val date = Date.from(Instant.ofEpochSecond(1567202400L))
-                val context = mockk<ExecutionContext>()
                 val candidateService = mockk<CandidateService>()
                 
                 coEvery { dateString.parseDate() } returns Right(Date.from(Instant.ofEpochSecond(1567202400L)))
-                every { candidateService.addDateToCandidate(candidateLois.name, date) } returns IO.just(Right(candidateLois))
+                every { candidateService.addDateToCandidate(candidateLois.name, date) } returns IO.just(candidateLois)
                 every { request.createResponseBuilder(any()) } returns HttpResponseMessageMock.HttpResponseMessageBuilderMock(HttpStatus.NO_CONTENT)
                 
-                val response = PutNextCandidate(candidateService).put(request, candidateLois.name, dateString, context)
+                val response = PutNextCandidate(candidateService).put(request, context, candidateLois.name, dateString)
                 
                 response.status shouldBe HttpStatus.NO_CONTENT
             }
@@ -67,20 +65,17 @@ class PutNextCandidateTest : BehaviorSpec({
             then( "returns error message") {
                 mockkStatic("com.sparetimedevs.win.util.DateParserKt")
                 val request = mockk<HttpRequestMessage<Optional<String>>>()
+                val context = mockk<ExecutionContext>()
                 val dateString = "20190831"
                 val date = Date.from(Instant.ofEpochSecond(1567202400L))
-                val context = mockk<ExecutionContext>()
                 val candidateService = mockk<CandidateService>()
-                val logger = mockk<Logger>()
+                val ioContainingDomainError = IO.raiseError<Candidate>(DomainError.ServiceUnavailable())
                 
-                every { context.logger } returns logger
-                every { logger.severe(any<String>()) } just Runs
-                val eitherContainingDomainError = Left(DomainError.ServiceUnavailable())
                 coEvery { dateString.parseDate() } returns Right(Date.from(Instant.ofEpochSecond(1567202400L)))
-                every { candidateService.addDateToCandidate(candidateLois.name, date) } returns IO.just(eitherContainingDomainError)
+                every { candidateService.addDateToCandidate(candidateLois.name, date) } returns ioContainingDomainError
                 every { request.createResponseBuilder(any()) } returns HttpResponseMessageMock.HttpResponseMessageBuilderMock(HttpStatus.INTERNAL_SERVER_ERROR)
                 
-                val response = PutNextCandidate(candidateService).put(request, candidateLois.name, dateString, context)
+                val response = PutNextCandidate(candidateService).put(request, context, candidateLois.name, dateString)
                 
                 response.status shouldBe HttpStatus.INTERNAL_SERVER_ERROR
                 response.getHeader(CONTENT_TYPE) shouldBe CONTENT_TYPE_APPLICATION_JSON
@@ -92,23 +87,19 @@ class PutNextCandidateTest : BehaviorSpec({
             then( "returns error message") {
                 mockkStatic("com.sparetimedevs.win.util.DateParserKt")
                 val request = mockk<HttpRequestMessage<Optional<String>>>()
-                val dateString = "boom"
                 val context = mockk<ExecutionContext>()
+                val dateString = "boom"
                 val candidateService = mockk<CandidateService>()
-                val logger = mockk<Logger>()
+                val eitherContainingError = Left(DomainError.DateParseError())
                 
-                every { context.logger } returns logger
-                every { logger.info(any<String>()) } just Runs
-                val errorMessage = "An exception was thrown while parsing the date string."
-                val eitherContainingError = Left(DomainError.DateParseError(errorMessage))
                 coEvery { dateString.parseDate() } returns eitherContainingError
                 every { request.createResponseBuilder(any()) } returns HttpResponseMessageMock.HttpResponseMessageBuilderMock(HttpStatus.BAD_REQUEST)
                 
-                val response = PutNextCandidate(candidateService).put(request, candidateLois.name, dateString, context)
+                val response = PutNextCandidate(candidateService).put(request, context, candidateLois.name, dateString)
                 
                 response.status shouldBe HttpStatus.BAD_REQUEST
                 response.getHeader(CONTENT_TYPE) shouldBe CONTENT_TYPE_APPLICATION_JSON
-                response.body shouldBe contain(errorMessage)
+                response.body shouldBe contain(DATE_PARSE_ERROR_MESSAGE)
             }
         }
     }
