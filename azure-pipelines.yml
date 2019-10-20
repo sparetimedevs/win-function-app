@@ -32,13 +32,19 @@ steps:
       sonarQubeRunAnalysis: false
       sqMavenPluginVersionChoice: 'latest'
 
-  - task: DockerInstaller@0
-    inputs:
-      dockerVersion: '17.09.0-ce'
+  # - task: DockerInstaller@0
+  #   inputs:
+  #     dockerVersion: '17.09.0-ce'
 
-  - script: docker-compose -f ./mongodb/docker-compose.yml up -d
-    displayName: 'Compose up MongoDB docker container'
-    workingDirectory: '$(System.DefaultWorkingDirectory)'
+  - task: DockerCompose@0
+    inputs:
+      containerregistrytype: 'Container Registry'
+      dockerComposeFile: '**/mongodb/docker-compose.yml up -d'
+      action: 'Run a Docker Compose command'
+
+  # - script: docker-compose -f ./mongodb/docker-compose.yml up -d
+  #   displayName: 'Compose up MongoDB docker container'
+  #   workingDirectory: '$(System.DefaultWorkingDirectory)'
 
   - script: npm i -g newman
     displayName: 'Install Newman CLI'
