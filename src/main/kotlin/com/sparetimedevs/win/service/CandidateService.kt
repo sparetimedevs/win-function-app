@@ -16,14 +16,10 @@
 
 package com.sparetimedevs.win.service
 
-import arrow.core.Either
-import arrow.core.Left
 import arrow.fx.IO
-import arrow.fx.extensions.fx
 import com.sparetimedevs.win.algorithm.CandidateAlgorithm
 import com.sparetimedevs.win.algorithm.DetailsOfAlgorithm
 import com.sparetimedevs.win.model.Candidate
-import com.sparetimedevs.win.model.DomainError
 import com.sparetimedevs.win.repository.CandidateRepository
 import com.sparetimedevs.win.trigger.defaultSorting
 import java.util.Date
@@ -37,23 +33,16 @@ class CandidateService(
 			candidateRepository.findAll(defaultSorting)
 	
 	fun determineNextCandidate(): IO<Pair<Candidate, DetailsOfAlgorithm>> =
-			IO.fx {
-				val candidates = !getAllCandidates()
-				candidateAlgorithm.nextCandidate(candidates)
-			}
+			getAllCandidates()
+					.map {
+						candidateAlgorithm.nextCandidate(it)
+					}
 	
-	fun addDateToCandidate(name: String, date: Date): IO<Either<DomainError, Candidate>> =
-			IO.fx {
-				val candidate = !effect { candidateRepository.findOneByName(name) }
-				candidate.fold(
-						{
-							Left(it)
-						},
-						{
-							val turns = it.firstAttendanceAndTurns.toMutableList()
-							turns.add(0, date)
-							!effect { candidateRepository.update(it.id, it.copy(firstAttendanceAndTurns = turns)) }
-						}
-				)
-			}
+	fun addDateToCandidate(name: String, date: Date): IO<Candidate> =
+			candidateRepository.findOneByName(name)
+					.flatMap {
+						val turns = it.firstAttendanceAndTurns.toMutableList()
+						turns.add(0, date)
+						candidateRepository.update(it.id, it.copy(firstAttendanceAndTurns = turns))
+					}
 }

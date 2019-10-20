@@ -31,12 +31,9 @@ import com.sparetimedevs.win.util.toViewModel
 import io.kotlintest.matchers.string.contain
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.BehaviorSpec
-import io.mockk.Runs
 import io.mockk.every
-import io.mockk.just
 import io.mockk.mockk
 import java.util.Optional
-import java.util.logging.Logger
 
 class GetNextCandidateTest : BehaviorSpec({
     
@@ -63,10 +60,7 @@ class GetNextCandidateTest : BehaviorSpec({
             then( "returns error message") {
                 val request = mockk<HttpRequestMessage<Optional<String>>>()
                 val context = mockk<ExecutionContext>()
-                val logger = mockk<Logger>()
                 val candidateService = mockk<CandidateService>()
-                every { context.logger } returns logger
-                every { logger.severe(any<String>()) } just Runs
                 val ioContainingDomainError = IO.raiseError<Pair<Candidate, DetailsOfAlgorithm>>(DomainError.ServiceUnavailable())
                 every { candidateService.determineNextCandidate() } returns ioContainingDomainError
                 every { request.createResponseBuilder(any()) } returns HttpResponseMessageMock.HttpResponseMessageBuilderMock(HttpStatus.INTERNAL_SERVER_ERROR)

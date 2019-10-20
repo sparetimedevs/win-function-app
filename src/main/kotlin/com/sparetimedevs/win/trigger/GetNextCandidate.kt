@@ -16,6 +16,7 @@
 
 package com.sparetimedevs.win.trigger
 
+import arrow.fx.IO
 import com.microsoft.azure.functions.ExecutionContext
 import com.microsoft.azure.functions.HttpMethod
 import com.microsoft.azure.functions.HttpRequestMessage
@@ -25,6 +26,7 @@ import com.microsoft.azure.functions.annotation.AuthorizationLevel
 import com.microsoft.azure.functions.annotation.FunctionName
 import com.microsoft.azure.functions.annotation.HttpTrigger
 import com.sparetimedevs.win.ServiceLocator
+import com.sparetimedevs.win.model.NextCandidateViewModel
 import com.sparetimedevs.win.service.CandidateService
 import com.sparetimedevs.win.util.toViewModel
 import java.util.Optional
@@ -45,20 +47,16 @@ class GetNextCandidate(
             context: ExecutionContext
     ): HttpResponseMessage =
             candidateService.determineNextCandidate()
-                    .attempt()
-                    .unsafeRunSync()
-                    .fold(
-                            {
-                                context.logger.severe("$ERROR_MESSAGE$it")
-                                request.createResponse(it)
+                    .toViewModel()
+                    .redeemWith(
+                            { throwable: Throwable ->
+                                handleFailure(request, context, throwable)
                             },
-                            {
-                                request.createResponseBuilder(HttpStatus.OK)
-                                        .body(it.toViewModel())
-                                        .header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
-                                        .build()
+                            { nextCandidateViewModel: NextCandidateViewModel ->
+                                handleSuccess(request, nextCandidateViewModel)
                             }
                     )
+                    .unsafeRunSync()
     
     companion object {
         private const val FUNCTION_NAME = "GetNextCandidate"
@@ -66,3 +64,12 @@ class GetNextCandidate(
         private const val ROUTE = "candidates/next"
     }
 }
+
+private fun handleSuccess(request: HttpRequestMessage<Optional<String>>, nextCandidateViewModel: NextCandidateViewModel): IO<HttpResponseMessage> =
+        IO { request.createResponse(nextCandidateViewModel) }
+
+private fun HttpRequestMessage<Optional<String>>.createResponse(nextCandidateViewModel: NextCandidateViewModel): HttpResponseMessage =
+        this.createResponseBuilder(HttpStatus.OK)
+                .body(nextCandidateViewModel)
+                .header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
+                .build()

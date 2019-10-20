@@ -21,14 +21,14 @@ import com.sparetimedevs.win.ServiceLocator
 import io.kotlintest.specs.BehaviorSpec
 
 class DoIt : BehaviorSpec({
-
-	val init = DataInitializer(ServiceLocator.defaultInstance.candidateRepository)
-
-	given("I wan't some candidates") {
-		`when`("I manually and locally test") {
-			then("inserts them in the database") {
-				init.initCandidates(candidates)
-			}
-		}
-	}
+    
+    val dataInitializer = DataInitializer(ServiceLocator.defaultInstance.candidateRepository)
+    
+    given("I wan't some candidates") {
+        `when`("I manually and locally test") {
+            then("inserts them in the database") {
+                dataInitializer.initCandidates(candidates).unsafeRunSync()
+            }
+        }
+    }
 })

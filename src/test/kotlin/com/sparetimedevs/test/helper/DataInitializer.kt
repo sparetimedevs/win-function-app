@@ -16,13 +16,27 @@
 
 package com.sparetimedevs.test.helper
 
+import arrow.core.extensions.list.traverse.traverse
+import arrow.core.fix
+import arrow.fx.IO
+import arrow.fx.extensions.io.applicative.applicative
+import arrow.fx.fix
 import com.sparetimedevs.win.model.Candidate
 import com.sparetimedevs.win.repository.CandidateRepository
 
 class DataInitializer(private val candidateRepository: CandidateRepository) {
-
-	suspend fun initCandidates(candidates: List<Candidate>) {
-		candidateRepository.deleteAll()
-		candidates.forEach { candidateRepository.save(it) }
-	}
+    
+    fun initCandidates(candidates: List<Candidate>): IO<List<Candidate>> {
+        return candidateRepository.deleteAll()
+                .followedBy(insert(candidates))
+    }
+    
+    private fun insert(candidates: List<Candidate>): IO<List<Candidate>> =
+            candidates.traverse(IO.applicative(), ::save).fix()
+                    .map {
+                        it.fix()
+                    }
+    
+    private fun save(candidate: Candidate): IO<Candidate> =
+            candidateRepository.save(candidate)
 }
