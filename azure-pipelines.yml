@@ -36,17 +36,17 @@ steps:
   #   inputs:
   #     dockerVersion: '17.09.0-ce'
 
-  # - task: DockerCompose@0
-  #   inputs:
-  #     containerregistrytype: 'Container Registry'
-  #     dockerComposeFile: '$(Build.SourcesDirectory)/mongodb/docker-compose.yml'
-  #     action: 'Run a Docker Compose command'
-
   - task: DockerCompose@0
     inputs:
-      containerregistrytype: 'Azure Container Registry'
-      dockerComposeFile: '**/docker-compose.yml'
+      containerregistrytype: 'Container Registry'
+      dockerComposeFile: '$(Build.SourcesDirectory)/mongodb/docker-compose.yml'
       action: 'Run a Docker Compose command'
+
+  # - task: DockerCompose@0
+  #   inputs:
+  #     containerregistrytype: 'Azure Container Registry'
+  #     dockerComposeFile: '**/docker-compose.yml'
+  #     action: 'Run a Docker Compose command'
 
   # - script: docker-compose -f ./mongodb/docker-compose.yml up -d
   #   displayName: 'Compose up MongoDB docker container'
