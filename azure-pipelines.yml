@@ -32,6 +32,18 @@ steps:
       sonarQubeRunAnalysis: false
       sqMavenPluginVersionChoice: 'latest'
 
+  - task: DockerInstaller@0
+    inputs:
+      dockerVersion: '17.09.0-ce'
+
+  - script: docker-compose -f ./mongodb/docker-compose.yml up -d
+    displayName: 'Compose up MongoDB docker container'
+    workingDirectory: '$(System.DefaultWorkingDirectory)'
+
+  - script: npm i -g newman
+    displayName: 'Install Newman CLI'
+    workingDirectory: '$(System.DefaultWorkingDirectory)'
+
   - task: CopyFiles@2
     displayName: 'Copy files to artifacts'
     inputs:
