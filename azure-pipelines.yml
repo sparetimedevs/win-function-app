@@ -47,11 +47,12 @@ steps:
   #     containerregistrytype: 'Azure Container Registry'
   #     dockerComposeFile: '**/**/docker-compose.yml'
   #     action: 'Run a Docker Compose command'
-  - task: Docker@2
   
   - task: DockerInstaller@0
     inputs:
       dockerVersion: '17.09.0-ce'
+
+  - task: Docker@2
 
   - task: DockerCompose@0
     displayName: Run services
