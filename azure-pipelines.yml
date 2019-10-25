@@ -48,6 +48,10 @@ steps:
   #     dockerComposeFile: '**/**/docker-compose.yml'
   #     action: 'Run a Docker Compose command'
 
+  - task: DockerInstaller@0
+    inputs:
+      dockerVersion: '17.09.0-ce'
+
   - task: DockerCompose@0
     displayName: Run services
     inputs:
