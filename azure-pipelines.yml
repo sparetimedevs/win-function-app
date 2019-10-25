@@ -56,9 +56,10 @@ steps:
     displayName: Run services
     inputs:
       action: Run services
+      workingDirectory: $(Build.SourcesDirectory)
       # azureSubscriptionEndpoint: $(azureSubscriptionEndpoint)
       # azureContainerRegistry: $(azureContainerRegistry)
-      dockerComposeFile: '$(Build.SourcesDirectory)/mongodb/docker-compose.yml'
+      dockerComposeFile: ./mongodb/docker-compose.yml
       projectName: $(Build.Repository.Name)
       # qualifyImageNames: true
       # buildImages: true
