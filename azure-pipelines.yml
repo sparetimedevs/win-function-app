@@ -58,10 +58,10 @@ steps:
       action: Run services
       # azureSubscriptionEndpoint: $(azureSubscriptionEndpoint)
       # azureContainerRegistry: $(azureContainerRegistry)
-      dockerComposeFile: '**\**\docker-compose.yml'
+      dockerComposeFile: '**/**/docker-compose.yml'
       projectName: $(Build.Repository.Name)
-      qualifyImageNames: true
-      buildImages: true
+      # qualifyImageNames: true
+      # buildImages: true
       abortOnContainerExit: true
       detached: false
 
