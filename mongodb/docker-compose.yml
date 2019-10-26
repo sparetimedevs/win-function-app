@@ -5,17 +5,17 @@ services:
   mongodb:
     image: mongo:4.1.3
     container_name: win-mongo
-    restart: always
+#    restart: always
     environment:
       MONGO_INITDB_ROOT_USERNAME: sparetimedev
       MONGO_INITDB_ROOT_PASSWORD: APjGgfK6GIbkmv6XCZ
-    volumes:
-      - mongodb:/data/db
-      - mongodb_config:/data/configdb
+#    volumes:
+#      - mongodb_data:/data/db
+#      - mongodb_data_config:/data/configdb
     ports:
       - 23018:27017
     command: mongod
 
-volumes:
-  mongodb:
-  mongodb_config:
+#volumes:
+#  mongodb_data:
+#  mongodb_data_config:
