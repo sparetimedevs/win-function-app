@@ -3,9 +3,11 @@ name: $(BuildDefinitionName)_$(SourceBranchName)_$(Date:yyyyMMdd)$(Rev:.r)
 resources:
   - repo: self
 
-queue:
-  name: Hosted macOS
-  demands: java
+# queue:
+#   name: Hosted macOS
+#   demands: java
+pool:
+  vmImage: 'windows-2019'  
 
 trigger:
   batch: true
