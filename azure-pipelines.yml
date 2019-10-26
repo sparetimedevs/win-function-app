@@ -70,7 +70,7 @@ steps:
 
   - script: docker-compose -f ./mongodb/docker-compose.yml up -d
     displayName: 'Compose up MongoDB docker container'
-    workingDirectory: $(System.SourcesDirectory)
+    # workingDirectory: $(System.SourcesDirectory)
 
   - script: npm i -g newman
     displayName: 'Install Newman CLI'
