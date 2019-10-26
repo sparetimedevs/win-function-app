@@ -7,7 +7,7 @@ resources:
 #   name: Hosted macOS
 #   demands: java
 pool:
-  vmImage: 'windows-2019'  
+  vmImage: 'macOS-10.14'
 
 trigger:
   batch: true
