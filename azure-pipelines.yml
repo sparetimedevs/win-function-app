@@ -1,59 +1,103 @@
 name: $(BuildDefinitionName)_$(SourceBranchName)_$(Date:yyyyMMdd)$(Rev:.r)
 
-resources:
-  - repo: self
-
-queue:
-  name: Hosted macOS
-  demands: java
-
 trigger:
   batch: true
   branches:
     include:
       - master
       - feature/*
+
 pr:
   branches:
     include:
       - master
 
-steps:
-  - script: npm i -g azure-functions-core-tools --unsafe-perm true
-    displayName: 'Install Azure Functions Core tools'
+jobs:
+  - job: BuildAndRunUnitTests
+    displayName: Build and run unit tests
 
-  - task: Maven@3
-    displayName: 'Build with Maven'
-    inputs:
-      mavenPomFile: 'pom.xml'
-      publishJUnitResults: false
-      jdkVersionOption: '1.8'
-      jdkArchitectureOption: 'x64'
-      sonarQubeRunAnalysis: false
-      sqMavenPluginVersionChoice: 'latest'
+    pool:
+      vmImage: 'ubuntu-18.04'
 
-  - task: CopyFiles@2
-    displayName: 'Copy files to artifacts'
-    inputs:
-      sourceFolder: '$(Build.SourcesDirectory)/target/azure-functions/sparetimedevs-win/'
-      targetFolder: '$(Build.ArtifactStagingDirectory)'
+    steps:
+      - task: Maven@3
+        displayName: Build with Maven
+        inputs:
+          mavenPomFile: 'pom.xml'
+          publishJUnitResults: false
+          jdkVersionOption: '1.8'
+          jdkArchitectureOption: 'x64'
+          sonarQubeRunAnalysis: false
+          sqMavenPluginVersionChoice: 'latest'
 
-  - task: DeleteFiles@1
-    displayName: 'Remove local.settings.json from artifacts'
-    inputs:
-      sourceFolder: '$(Build.ArtifactStagingDirectory)'
-      contents: 'local.settings.json'
+      - task: CopyFiles@2
+        displayName: Copy files to artifacts
+        inputs:
+          sourceFolder: $(Build.SourcesDirectory)/target/azure-functions/sparetimedevs-win/
+          targetFolder: $(Build.ArtifactStagingDirectory)
 
-  - task: PublishBuildArtifacts@1
-    displayName: 'Publish artifacts'
-    inputs:
-      pathtoPublish: '$(Build.ArtifactStagingDirectory)'
-      artifactName: 'drop'
+  - job: RunFunctionalTests
+    displayName: Run functional tests
 
-  - task: PublishCodeCoverageResults@1
-    displayName: 'Publish code coverage'
-    inputs:
-      codeCoverageTool: 'jaCoCo'
-      summaryFileLocation: '$(System.DefaultWorkingDirectory)/target/site/jacoco/jacoco.xml'
-      reportDirectory: '$(System.DefaultWorkingDirectory)/target/site/jacoco'
-      additionalCodeCoverageFiles: '$(System.DefaultWorkingDirectory)/target/jacoco.exec'
+    pool:
+      vmImage: 'ubuntu-18.04'
+
+    steps:
+      - task: DockerInstaller@0
+        inputs:
+          dockerVersion: '17.09.0-ce'
+
+      - task: DockerCompose@0
+        displayName: Run services
+        inputs:
+          action: Run services
+          workingDirectory: $(Build.SourcesDirectory)
+          dockerComposeFile: ./mongodb/docker-compose.yml
+
+      - script: sudo npm i -g azure-functions-core-tools --unsafe-perm true
+        displayName: Install Azure Functions Core tools
+
+      - script: sudo npm i -g newman
+        displayName: Install Newman CLI
+
+      - script: mvn clean install -DskipTests
+        displayName: Maven clean install without running tests
+
+      - script: mvn azure-functions:package
+        displayName: Package AZ Function App
+
+      - script: mvn azure-functions:run &
+        displayName: Run AZ Function App
+
+      - script: newman run src/test/functional/win-function-app-newman-tests.json
+        displayName: Run Newman CLI tests
+
+  - job: PublishBuild
+    displayName: Publish build
+    dependsOn:
+    - BuildAndRunUnitTests
+    - RunFunctionalTests
+
+    pool:
+      vmImage: 'ubuntu-18.04'
+
+    steps:
+      - task: DeleteFiles@1
+        displayName: Remove local.settings.json from artifacts
+        inputs:
+          sourceFolder: $(Build.ArtifactStagingDirectory)
+          contents: 'local.settings.json'
+
+      - task: PublishBuildArtifacts@1
+        displayName: Publish artifacts
+        inputs:
+          pathtoPublish: $(Build.ArtifactStagingDirectory)
+          artifactName: 'drop'
+
+      - task: PublishCodeCoverageResults@1
+        displayName: Publish code coverage
+        inputs:
+          codeCoverageTool: 'jaCoCo'
+          summaryFileLocation: $(System.DefaultWorkingDirectory)/target/site/jacoco/jacoco.xml
+          reportDirectory: $(System.DefaultWorkingDirectory)/target/site/jacoco
+          additionalCodeCoverageFiles: $(System.DefaultWorkingDirectory)/target/jacoco.exec
