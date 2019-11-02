@@ -33,8 +33,8 @@ jobs:
       - task: CopyFiles@2
         displayName: Copy files to artifacts
         inputs:
-          sourceFolder: $(Build.SourcesDirectory)/target/azure-functions/sparetimedevs-win/
-          targetFolder: $(Build.ArtifactStagingDirectory)
+          sourceFolder: '$(Build.SourcesDirectory)/target/azure-functions/sparetimedevs-win/'
+          targetFolder: '$(Build.ArtifactStagingDirectory)'
 
   - job: RunFunctionalTests
     displayName: Run functional tests
@@ -85,19 +85,19 @@ jobs:
       - task: DeleteFiles@1
         displayName: Remove local.settings.json from artifacts
         inputs:
-          sourceFolder: $(Build.ArtifactStagingDirectory)
+          sourceFolder: '$(Build.ArtifactStagingDirectory)'
           contents: 'local.settings.json'
 
       - task: PublishBuildArtifacts@1
         displayName: Publish artifacts
         inputs:
-          pathtoPublish: $(Build.ArtifactStagingDirectory)
+          pathtoPublish: '$(Build.ArtifactStagingDirectory)'
           artifactName: 'drop'
 
       - task: PublishCodeCoverageResults@1
         displayName: Publish code coverage
         inputs:
           codeCoverageTool: 'jaCoCo'
-          summaryFileLocation: $(System.DefaultWorkingDirectory)/target/site/jacoco/jacoco.xml
-          reportDirectory: $(System.DefaultWorkingDirectory)/target/site/jacoco
-          additionalCodeCoverageFiles: $(System.DefaultWorkingDirectory)/target/jacoco.exec
+          summaryFileLocation: '$(System.DefaultWorkingDirectory)/target/site/jacoco/jacoco.xml'
+          reportDirectory: '$(System.DefaultWorkingDirectory)/target/site/jacoco'
+          additionalCodeCoverageFiles: '$(System.DefaultWorkingDirectory)/target/jacoco.exec'
