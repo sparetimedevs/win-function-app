@@ -2,6 +2,9 @@
 target/
 *.class
 
+# Newman test results
+results/
+
 # Log file
 *.log
 
