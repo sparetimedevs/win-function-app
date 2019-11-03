@@ -81,5 +81,14 @@ jobs:
       - script: mvn azure-functions:run &
         displayName: Run AZ Function App
 
-      - script: newman run src/test/functional/win-function-app-newman-tests.json
+      - script: newman run src/test/functional/win-function-app-newman-tests.json --reporters cli,junit --reporter-junit-export results/junit-report.xml
         displayName: Run Newman CLI tests
+        continueOnError: true
+
+      - task: PublishTestResults@2
+        inputs:
+          testResultsFormat: 'JUnit'
+          testResultsFiles: 'results/junit-report.xml'
+          searchFolder: '$(Build.SourcesDirectory)'
+          failTaskOnFailedTests: true
+          testRunTitle: 'Functional API tests'
