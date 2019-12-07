@@ -27,8 +27,8 @@ private const val DATE_FORMAT = "yyyyMMdd"
 private val dateFormat: DateFormat = SimpleDateFormat(DATE_FORMAT)
 
 suspend fun String.parseDate(): Either<DomainError, Date> =
-		Either.catch({ throwable: Throwable ->
-			throwable.message?.let { DateParseError(it) } ?: DateParseError()
-		}) {
-			dateFormat.parse(this)
-		}
+        Either.catch({ throwable: Throwable ->
+            throwable.message?.let { DateParseError(it) } ?: DateParseError()
+        }) {
+            dateFormat.parse(this)
+        }

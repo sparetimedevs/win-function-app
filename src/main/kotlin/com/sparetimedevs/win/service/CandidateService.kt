@@ -25,24 +25,24 @@ import com.sparetimedevs.win.trigger.defaultSorting
 import java.util.Date
 
 class CandidateService(
-		private val candidateAlgorithm: CandidateAlgorithm,
-		private val candidateRepository: CandidateRepository
+        private val candidateAlgorithm: CandidateAlgorithm,
+        private val candidateRepository: CandidateRepository
 ) {
-
-	fun getAllCandidates(): IO<List<Candidate>> =
-			candidateRepository.findAll(defaultSorting)
-	
-	fun determineNextCandidate(): IO<Pair<Candidate, DetailsOfAlgorithm>> =
-			getAllCandidates()
-					.map {
-						candidateAlgorithm.nextCandidate(it)
-					}
-	
-	fun addDateToCandidate(name: String, date: Date): IO<Candidate> =
-			candidateRepository.findOneByName(name)
-					.flatMap {
-						val turns = it.firstAttendanceAndTurns.toMutableList()
-						turns.add(0, date)
-						candidateRepository.update(it.id, it.copy(firstAttendanceAndTurns = turns))
-					}
+    
+    fun getAllCandidates(): IO<List<Candidate>> =
+            candidateRepository.findAll(defaultSorting)
+    
+    fun determineNextCandidate(): IO<Pair<Candidate, DetailsOfAlgorithm>> =
+            getAllCandidates()
+                    .map {
+                        candidateAlgorithm.nextCandidate(it)
+                    }
+    
+    fun addDateToCandidate(name: String, date: Date): IO<Candidate> =
+            candidateRepository.findOneByName(name)
+                    .flatMap {
+                        val turns = it.firstAttendanceAndTurns.toMutableList()
+                        turns.add(0, date)
+                        candidateRepository.update(it.id, it.copy(firstAttendanceAndTurns = turns))
+                    }
 }

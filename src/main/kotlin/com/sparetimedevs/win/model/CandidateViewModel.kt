@@ -19,7 +19,7 @@ package com.sparetimedevs.win.model
 import java.util.Date
 
 data class CandidateViewModel(
-		val name: Name,
-		val firstAttendance: Date,
-		val turns: List<Date>
+        val name: Name,
+        val firstAttendance: Date,
+        val turns: List<Date>
 )

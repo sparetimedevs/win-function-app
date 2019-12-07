@@ -19,6 +19,6 @@ package com.sparetimedevs.win.model
 import com.sparetimedevs.win.algorithm.DetailsOfAlgorithm
 
 data class NextCandidateViewModel(
-		val candidateName: Name,
-		val detailsOfAlgorithm: DetailsOfAlgorithm
+        val candidateName: Name,
+        val detailsOfAlgorithm: DetailsOfAlgorithm
 )
