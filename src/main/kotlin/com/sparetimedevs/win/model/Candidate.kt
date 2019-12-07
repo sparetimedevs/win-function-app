@@ -25,7 +25,7 @@ import java.util.Date
 typealias Name = String
 
 data class Candidate @BsonCreator constructor(
-		@BsonId val id: ObjectId = ObjectId(),
-		@BsonProperty("name") val name: Name,
-		@BsonProperty("firstAttendanceAndTurns") val firstAttendanceAndTurns: List<Date>
+        @BsonId val id: ObjectId = ObjectId(),
+        @BsonProperty("name") val name: Name,
+        @BsonProperty("firstAttendanceAndTurns") val firstAttendanceAndTurns: List<Date>
 )

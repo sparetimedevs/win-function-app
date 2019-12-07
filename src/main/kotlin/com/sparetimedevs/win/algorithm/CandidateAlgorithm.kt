@@ -19,8 +19,8 @@ package com.sparetimedevs.win.algorithm
 import com.sparetimedevs.win.model.Candidate
 
 interface CandidateAlgorithm {
-
-	fun nextCandidate(candidates: List<Candidate>): Pair<Candidate, DetailsOfAlgorithm>
+    
+    fun nextCandidate(candidates: List<Candidate>): Pair<Candidate, DetailsOfAlgorithm>
 }
 
 interface DetailsOfAlgorithm

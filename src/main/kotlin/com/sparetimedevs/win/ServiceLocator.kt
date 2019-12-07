@@ -25,14 +25,14 @@ import io.netty.channel.EventLoopGroup
 import io.netty.channel.nio.NioEventLoopGroup
 
 class ServiceLocator(
-		candidateAlgorithm: CandidateAlgorithm = RollDiceToSelectNextCandidate(),
-		eventLoopGroup: EventLoopGroup = NioEventLoopGroup(),
-		database: Database = Database(getMongoDbConnectionString(), getDbName(), eventLoopGroup = eventLoopGroup),
-		val candidateRepository: CandidateRepository = CandidateRepository(database),
-		val candidateService: CandidateService = CandidateService(candidateAlgorithm, candidateRepository)
+        candidateAlgorithm: CandidateAlgorithm = RollDiceToSelectNextCandidate(),
+        eventLoopGroup: EventLoopGroup = NioEventLoopGroup(),
+        database: Database = Database(getMongoDbConnectionString(), getDbName(), eventLoopGroup = eventLoopGroup),
+        val candidateRepository: CandidateRepository = CandidateRepository(database),
+        val candidateService: CandidateService = CandidateService(candidateAlgorithm, candidateRepository)
 ) {
-
-	companion object {
-		val defaultInstance = ServiceLocator()
-	}
+    
+    companion object {
+        val defaultInstance = ServiceLocator()
+    }
 }

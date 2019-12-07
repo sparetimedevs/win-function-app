@@ -20,9 +20,9 @@ private const val MONGO_DB_CONNECTION_STRING = "MONGO_DB_CONNECTION_STRING"
 private const val DB_NAME = "win_db"
 
 fun getMongoDbConnectionString(): String {
-	return System.getenv(MONGO_DB_CONNECTION_STRING)
+    return System.getenv(MONGO_DB_CONNECTION_STRING)
 }
 
 fun getDbName(): String {
-	return DB_NAME
+    return DB_NAME
 }

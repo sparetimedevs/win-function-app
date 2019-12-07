@@ -23,32 +23,32 @@ import io.kotlintest.shouldBe
 import io.kotlintest.specs.BehaviorSpec
 
 class DateParserKtTest : BehaviorSpec({
-
-	given("parse date is called") {
-		`when`("operating on a valid date string") {
-			then("returns correct date object") {
-				"20190831".parseDate().fold(
-						{
-							fail("This test case should yield a Right.")
-						},
-						{
-							it.toInstant().epochSecond shouldBe 1567202400L
-						}
-				)
-			}
-		}
-
-		`when`("operating on an invalid date string") {
-			then("returns correct date object") {
-				"boom".parseDate().fold(
-						{
-							it.shouldBeInstanceOf<DomainError.DateParseError>()
-						},
-						{
-							fail("This test case should yield a Left.")
-						}
-				)
-			}
-		}
-	}
+    
+    given("parse date is called") {
+        `when`("operating on a valid date string") {
+            then("returns correct date object") {
+                "20190831".parseDate().fold(
+                        {
+                            fail("This test case should yield a Right.")
+                        },
+                        {
+                            it.toInstant().epochSecond shouldBe 1567202400L
+                        }
+                )
+            }
+        }
+        
+        `when`("operating on an invalid date string") {
+            then("returns correct date object") {
+                "boom".parseDate().fold(
+                        {
+                            it.shouldBeInstanceOf<DomainError.DateParseError>()
+                        },
+                        {
+                            fail("This test case should yield a Left.")
+                        }
+                )
+            }
+        }
+    }
 })

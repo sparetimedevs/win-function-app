@@ -24,51 +24,51 @@ import io.kotlintest.shouldNotBe
 import io.kotlintest.specs.BehaviorSpec
 
 class RollDiceToSelectNextCandidateTest : BehaviorSpec({
-
-	Given("list of candidates provided") {
-		`when`("nextCandidate") {
-			then("one candidate from the list is returned") {
-				val nextCandidate = RollDiceToSelectNextCandidate().nextCandidate(candidates)
-
-				nextCandidate.first shouldBeOneOf candidates
-			}
-
-			and( "repeating this a lot of times") {
-				then("average out the results") {
-					val mutableListOfCandidates = candidates.toMutableList()
-					var currentTopCandidate = mutableListOfCandidates.first()
-					repeat(300) {
-						val index = mutableListOfCandidates.indexOf(currentTopCandidate)
-						mutableListOfCandidates.removeAt(index)
-						mutableListOfCandidates.add(0, currentTopCandidate)
-
-						val nextCandidate = RollDiceToSelectNextCandidate().nextCandidate(mutableListOfCandidates)
-
-						nextCandidate.first shouldBeOneOf mutableListOfCandidates
-						nextCandidate.first shouldNotBe currentTopCandidate
-
-						currentTopCandidate = nextCandidate.first
-					}
-				}
-			}
-		}
-	}
-
-	Given("rolling dice") {
-		`when`("nextCandidate") {
-			then("every dice rolled should have a number in range of one to six") {
-				val nextCandidate = RollDiceToSelectNextCandidate().nextCandidate(candidates)
-
-				nextCandidate.second.diceEyes.forEach {
-					it shouldBeInRange IntRange(1, 6)
-				}
-			}
-
-			then("the total amount of eyes is equal to the sum of the eyes on all dice") {
-				val nextCandidate = RollDiceToSelectNextCandidate().nextCandidate(candidates)
-
-				nextCandidate.second.totalEyes shouldBe nextCandidate.second.diceEyes.sum()
-			}
-		}
-	}
+    
+    Given("list of candidates provided") {
+        `when`("nextCandidate") {
+            then("one candidate from the list is returned") {
+                val nextCandidate = RollDiceToSelectNextCandidate().nextCandidate(candidates)
+                
+                nextCandidate.first shouldBeOneOf candidates
+            }
+            
+            and( "repeating this a lot of times") {
+                then("average out the results") {
+                    val mutableListOfCandidates = candidates.toMutableList()
+                    var currentTopCandidate = mutableListOfCandidates.first()
+                    repeat(300) {
+                        val index = mutableListOfCandidates.indexOf(currentTopCandidate)
+                        mutableListOfCandidates.removeAt(index)
+                        mutableListOfCandidates.add(0, currentTopCandidate)
+                        
+                        val nextCandidate = RollDiceToSelectNextCandidate().nextCandidate(mutableListOfCandidates)
+                        
+                        nextCandidate.first shouldBeOneOf mutableListOfCandidates
+                        nextCandidate.first shouldNotBe currentTopCandidate
+                        
+                        currentTopCandidate = nextCandidate.first
+                    }
+                }
+            }
+        }
+    }
+    
+    Given("rolling dice") {
+        `when`("nextCandidate") {
+            then("every dice rolled should have a number in range of one to six") {
+                val nextCandidate = RollDiceToSelectNextCandidate().nextCandidate(candidates)
+                
+                nextCandidate.second.diceEyes.forEach {
+                    it shouldBeInRange IntRange(1, 6)
+                }
+            }
+            
+            then("the total amount of eyes is equal to the sum of the eyes on all dice") {
+                val nextCandidate = RollDiceToSelectNextCandidate().nextCandidate(candidates)
+                
+                nextCandidate.second.totalEyes shouldBe nextCandidate.second.diceEyes.sum()
+            }
+        }
+    }
 })

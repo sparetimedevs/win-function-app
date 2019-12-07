@@ -20,14 +20,14 @@ import io.kotlintest.matchers.numerics.shouldBeInRange
 import io.kotlintest.specs.BehaviorSpec
 
 class DieTest : BehaviorSpec({
-
-	given("a D6") {
-		`when`("roll") {
-			then("returns a number in range of one to six") {
-				repeat(300) {
-					D6.roll() shouldBeInRange IntRange(1, 6)
-				}
-			}
-		}
-	}
+    
+    given("a D6") {
+        `when`("roll") {
+            then("returns a number in range of one to six") {
+                repeat(300) {
+                    D6.roll() shouldBeInRange IntRange(1, 6)
+                }
+            }
+        }
+    }
 })

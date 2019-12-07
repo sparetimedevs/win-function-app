@@ -19,11 +19,11 @@ package com.sparetimedevs.win.model
 import kotlin.random.Random
 
 interface Rollable<T> {
-	fun roll(): T
+    fun roll(): T
 }
 
 open class Die(private val sides: Int, private val random: Random = Random.Default): Rollable<Int> {
-	override fun roll() = random.nextInt(1, sides + 1)
+    override fun roll() = random.nextInt(1, sides + 1)
 }
 
 object D6: Die(6)

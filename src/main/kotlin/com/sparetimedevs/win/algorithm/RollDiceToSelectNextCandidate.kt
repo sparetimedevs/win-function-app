@@ -21,17 +21,17 @@ import com.sparetimedevs.win.model.D6
 import kotlin.math.ceil
 
 class RollDiceToSelectNextCandidate : CandidateAlgorithm {
-
-	override fun nextCandidate(candidates: List<Candidate>): Pair<Candidate, DetailsOfRolledDice> {
-		val amountOfDice = ceil(candidates.size.toDouble().div(4)).toInt()
-		val diceEyes = List(amountOfDice) { D6.roll() }
-		val resultOfRolledDice = DetailsOfRolledDice(diceEyes)
-
-		return when {
-			resultOfRolledDice.totalEyes < candidates.size -> candidates[resultOfRolledDice.totalEyes - 1] to resultOfRolledDice
-			else -> candidates.last() to resultOfRolledDice
-		}
-	}
+    
+    override fun nextCandidate(candidates: List<Candidate>): Pair<Candidate, DetailsOfRolledDice> {
+        val amountOfDice = ceil(candidates.size.toDouble().div(4)).toInt()
+        val diceEyes = List(amountOfDice) { D6.roll() }
+        val resultOfRolledDice = DetailsOfRolledDice(diceEyes)
+        
+        return when {
+            resultOfRolledDice.totalEyes < candidates.size -> candidates[resultOfRolledDice.totalEyes - 1] to resultOfRolledDice
+            else -> candidates.last() to resultOfRolledDice
+        }
+    }
 }
 
 data class DetailsOfRolledDice(val diceEyes: List<Int>, val totalEyes: Int = diceEyes.sum()) : DetailsOfAlgorithm
