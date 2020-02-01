@@ -26,7 +26,7 @@ import com.microsoft.azure.functions.annotation.AuthorizationLevel
 import com.microsoft.azure.functions.annotation.BindingName
 import com.microsoft.azure.functions.annotation.FunctionName
 import com.microsoft.azure.functions.annotation.HttpTrigger
-import com.sparetimedevs.win.ServiceLocator
+import com.sparetimedevs.win.dependencyModule
 import com.sparetimedevs.win.model.Candidate
 import com.sparetimedevs.win.model.Name
 import com.sparetimedevs.win.service.CandidateService
@@ -35,7 +35,7 @@ import com.sparetimedevs.win.util.parseDate
 import java.util.Optional
 
 class PutNextCandidate(
-        private val candidateService: CandidateService = ServiceLocator.defaultInstance.candidateService
+        private val candidateService: CandidateService = dependencyModule.candidateService
 ) {
     
     @FunctionName(FUNCTION_NAME)

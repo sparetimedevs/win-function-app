@@ -16,6 +16,8 @@
 
 package com.sparetimedevs.win.model
 
+import arrow.optics.extensions.list.cons.cons
+import arrow.optics.optics
 import org.bson.codecs.pojo.annotations.BsonCreator
 import org.bson.codecs.pojo.annotations.BsonId
 import org.bson.codecs.pojo.annotations.BsonProperty
@@ -24,8 +26,18 @@ import java.util.Date
 
 typealias Name = String
 
+@optics
 data class Candidate @BsonCreator constructor(
         @BsonId val id: ObjectId = ObjectId(),
         @BsonProperty("name") val name: Name,
         @BsonProperty("firstAttendanceAndTurns") val firstAttendanceAndTurns: List<Date>
-)
+) {
+    companion object
+}
+
+private val candidateFirstAttendanceAndTurns = Candidate.firstAttendanceAndTurns
+
+private fun getCandidateFirstAttendanceAndTurns(candidate: Candidate) = candidateFirstAttendanceAndTurns.get(candidate)
+
+fun Candidate.addTurn(date: Date) =
+        candidateFirstAttendanceAndTurns.modify(this) { date.cons(getCandidateFirstAttendanceAndTurns(this)) }
