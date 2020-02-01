@@ -17,11 +17,8 @@
 package com.sparetimedevs.win.util
 
 import arrow.core.Either
-import arrow.core.extensions.list.traverse.traverse
-import arrow.core.fix
 import arrow.fx.IO
-import arrow.fx.extensions.io.applicative.applicative
-import arrow.fx.fix
+import arrow.fx.extensions.io.concurrent.parTraverse
 import com.sparetimedevs.win.algorithm.DetailsOfAlgorithm
 import com.sparetimedevs.win.model.Candidate
 import com.sparetimedevs.win.model.CandidateViewModel
@@ -31,10 +28,7 @@ import com.sparetimedevs.win.model.NextCandidateViewModel
 
 fun IO<List<Candidate>>.toViewModels(): IO<List<CandidateViewModel>> =
         this.flatMap { candidates: List<Candidate> ->
-            candidates.traverse(IO.applicative(), ::toViewModel).fix()
-                    .map {
-                        it.fix()
-                    }
+            candidates.parTraverse(::toViewModel)
         }
 
 fun toViewModel(candidate: Candidate): IO<CandidateViewModel> =

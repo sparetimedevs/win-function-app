@@ -26,7 +26,6 @@ import com.sparetimedevs.suspendmongo.crud.readOne
 import com.sparetimedevs.suspendmongo.crud.updateOne
 import com.sparetimedevs.suspendmongo.getCollection
 import com.sparetimedevs.win.model.Candidate
-import com.sparetimedevs.win.util.flattenRaisingError
 import org.bson.conversions.Bson
 import org.bson.types.ObjectId
 
@@ -35,37 +34,23 @@ class CandidateRepository(database: Database) {
     private val collection = getCollection<Candidate>(database)
     
     fun findAll(): IO<List<Candidate>> =
-            IO.effect {
-                collection.readAll().toEither()
-            }.flattenRaisingError()
+            databaseRequest { collection.readAll() }
     
     fun findAll(sort: Bson): IO<List<Candidate>> =
-            IO.effect {
-                collection.readAll(sort).toEither()
-            }.flattenRaisingError()
+            databaseRequest { collection.readAll(sort) }
     
     fun findOneByName(name: String): IO<Candidate> =
-            IO.effect {
-                collection.readOne("name" to name).toEither()
-            }.flattenRaisingError()
+            databaseRequest { collection.readOne("name" to name) }
     
     fun deleteAll(): IO<Boolean> =
-            IO.effect {
-                collection.deleteAll().toEither()
-            }.flattenRaisingError()
+            databaseRequest { collection.deleteAll() }
     
     fun deleteOneById(id: ObjectId): IO<Candidate> =
-            IO.effect {
-                collection.deleteOne(id).toEither()
-            }.flattenRaisingError()
+            databaseRequest { collection.deleteOne(id) }
     
     fun save(candidate: Candidate): IO<Candidate> =
-            IO.effect {
-                collection.createOne(candidate).toEither()
-            }.flattenRaisingError()
+            databaseRequest { collection.createOne(candidate) }
     
     fun update(id: ObjectId, candidate: Candidate): IO<Candidate> =
-            IO.effect {
-                collection.updateOne(id, candidate).toEither()
-            }.flattenRaisingError()
+            databaseRequest { collection.updateOne(id, candidate) }
 }

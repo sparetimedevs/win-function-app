@@ -25,14 +25,14 @@ import com.microsoft.azure.functions.HttpStatus
 import com.microsoft.azure.functions.annotation.AuthorizationLevel
 import com.microsoft.azure.functions.annotation.FunctionName
 import com.microsoft.azure.functions.annotation.HttpTrigger
-import com.sparetimedevs.win.ServiceLocator
+import com.sparetimedevs.win.dependencyModule
 import com.sparetimedevs.win.model.CandidateViewModel
 import com.sparetimedevs.win.service.CandidateService
 import com.sparetimedevs.win.util.toViewModels
 import java.util.Optional
 
 class GetAllCandidates(
-        private val candidateService: CandidateService = ServiceLocator.defaultInstance.candidateService
+        private val candidateService: CandidateService = dependencyModule.candidateService
 ) {
     
     @FunctionName(FUNCTION_NAME)

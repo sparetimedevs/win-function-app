@@ -20,6 +20,7 @@ import arrow.fx.IO
 import com.sparetimedevs.win.algorithm.CandidateAlgorithm
 import com.sparetimedevs.win.algorithm.DetailsOfAlgorithm
 import com.sparetimedevs.win.model.Candidate
+import com.sparetimedevs.win.model.addTurn
 import com.sparetimedevs.win.repository.CandidateRepository
 import com.sparetimedevs.win.trigger.defaultSorting
 import java.util.Date
@@ -41,8 +42,6 @@ class CandidateService(
     fun addDateToCandidate(name: String, date: Date): IO<Candidate> =
             candidateRepository.findOneByName(name)
                     .flatMap {
-                        val turns = it.firstAttendanceAndTurns.toMutableList()
-                        turns.add(0, date)
-                        candidateRepository.update(it.id, it.copy(firstAttendanceAndTurns = turns))
+                        candidateRepository.update(it.id, it.addTurn(date))
                     }
 }

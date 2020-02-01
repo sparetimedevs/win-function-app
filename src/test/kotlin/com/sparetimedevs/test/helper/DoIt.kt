@@ -17,12 +17,12 @@
 package com.sparetimedevs.test.helper
 
 import com.sparetimedevs.test.data.candidates
-import com.sparetimedevs.win.ServiceLocator
+import com.sparetimedevs.win.dependencyModule
 import io.kotlintest.specs.BehaviorSpec
 
 class DoIt : BehaviorSpec({
     
-    val dataInitializer = DataInitializer(ServiceLocator.defaultInstance.candidateRepository)
+    val dataInitializer = DataInitializer(dependencyModule.candidateRepository)
     
     given("I wan't some candidates") {
         `when`("I manually and locally test") {
