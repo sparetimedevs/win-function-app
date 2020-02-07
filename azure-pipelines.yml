@@ -66,7 +66,7 @@ jobs:
           workingDirectory: $(Build.SourcesDirectory)
           dockerComposeFile: ./mongodb/docker-compose.yml
 
-      - script: sudo npm i -g azure-functions-core-tools --unsafe-perm true
+      - script: sudo npm i -g azure-functions-core-tools@3 --unsafe-perm true
         displayName: Install Azure Functions Core tools
 
       - script: sudo npm i -g newman
@@ -74,9 +74,6 @@ jobs:
 
       - script: mvn clean install -DskipTests
         displayName: Maven clean install without running tests
-
-      - script: mvn azure-functions:package
-        displayName: Package AZ Function App
 
       - script: mvn azure-functions:run &
         displayName: Run AZ Function App
