@@ -72,8 +72,8 @@ jobs:
       - script: sudo npm i -g newman
         displayName: Install Newman CLI
 
-      - script: mvn clean install -DskipTests
-        displayName: Maven clean install without running tests
+      - script: mvn clean package -DskipTests
+        displayName: Maven clean package without running tests
 
       - script: mvn azure-functions:run &
         displayName: Run AZ Function App
