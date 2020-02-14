@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 sparetimedevs and respective authors and developers.
+ * Copyright (c) 2020 sparetimedevs and respective authors and developers.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,6 @@
  * limitations under the License.
  */
 
-package com.sparetimedevs.win.model
+package com.sparetimedevs.incubator
 
-import io.kotlintest.matchers.shouldBeInRange
-import io.kotlintest.specs.BehaviorSpec
-
-class DieTest : BehaviorSpec({
-    
-    given("a D6") {
-        `when`("roll") {
-            then("returns a number in range of one to six") {
-                repeat(300) {
-                    D6.roll() shouldBeInRange IntRange(1, 6)
-                }
-            }
-        }
-    }
-})
+const val ALL_ASSERTIONS_ARE_POSITIVE = true

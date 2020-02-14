@@ -18,7 +18,7 @@ package com.sparetimedevs.win.algorithm
 
 import com.sparetimedevs.test.data.candidates
 import io.kotlintest.matchers.collections.shouldBeOneOf
-import io.kotlintest.matchers.numerics.shouldBeInRange
+import io.kotlintest.matchers.shouldBeInRange
 import io.kotlintest.shouldBe
 import io.kotlintest.shouldNotBe
 import io.kotlintest.specs.BehaviorSpec

@@ -16,23 +16,23 @@
 
 package com.sparetimedevs.win.trigger
 
-import arrow.core.Either
 import arrow.fx.IO
 import com.microsoft.azure.functions.ExecutionContext
 import com.microsoft.azure.functions.HttpRequestMessage
 import com.microsoft.azure.functions.HttpResponseMessage
 import com.microsoft.azure.functions.HttpStatus
+import com.sparetimedevs.incubator.CONTENT_TYPE
+import com.sparetimedevs.incubator.CONTENT_TYPE_APPLICATION_JSON
+import com.sparetimedevs.incubator.ErrorResponse
+import com.sparetimedevs.incubator.log
 import com.sparetimedevs.win.model.DomainError
 import java.util.Optional
 
-const val ERROR_MESSAGE_PREFIX = "An error occurred. The error is:"
 const val TO_VIEW_MODEL_ERROR_MESSAGE = "Something went wrong while transforming the data to view model."
 const val DATE_PARSE_ERROR_MESSAGE = "Something went wrong while parsing the date."
 const val ENTITY_NOT_FOUND_ERROR_MESSAGE = "What you are looking for is not found."
 const val SERVICE_UNAVAILABLE_ERROR_MESSAGE = "The service is currently unavailable."
 const val UNKNOWN_ERROR_MESSAGE = "An unknown error occurred."
-
-private const val THROWABLE_MESSAGE_PREFIX = "An exception was thrown. The exception is:"
 
 fun handleFailure(request: HttpRequestMessage<Optional<String>>, context: ExecutionContext, throwable: Throwable): IO<HttpResponseMessage> =
         when (throwable) {
@@ -42,14 +42,9 @@ fun handleFailure(request: HttpRequestMessage<Optional<String>>, context: Execut
             }
             else -> {
                 log(context, throwable)
-                createResponse(request, throwable)
+                com.sparetimedevs.incubator.createResponse(request, throwable)
             }
         }
-
-private fun log(context: ExecutionContext, throwable: Throwable): IO<Either<Throwable, Unit>> =
-        IO {
-            context.logger.severe("$THROWABLE_MESSAGE_PREFIX $throwable. ${throwable.message}")
-        }.attempt()
 
 private fun createResponse(request: HttpRequestMessage<Optional<String>>, domainError: DomainError): IO<HttpResponseMessage> =
         IO {
@@ -86,13 +81,3 @@ private fun createResponse(request: HttpRequestMessage<Optional<String>>, domain
                 }
             }
         }
-
-private fun createResponse(request: HttpRequestMessage<Optional<String>>, throwable: Throwable): IO<HttpResponseMessage> =
-        IO {
-            request.createResponseBuilder(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ErrorResponse("$ERROR_MESSAGE_PREFIX $throwable"))
-                    .header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
-                    .build()
-        }
-
-private data class ErrorResponse(val errorMessage: String)

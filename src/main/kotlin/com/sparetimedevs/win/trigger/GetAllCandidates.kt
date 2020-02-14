@@ -25,6 +25,9 @@ import com.microsoft.azure.functions.HttpStatus
 import com.microsoft.azure.functions.annotation.AuthorizationLevel
 import com.microsoft.azure.functions.annotation.FunctionName
 import com.microsoft.azure.functions.annotation.HttpTrigger
+import com.sparetimedevs.incubator.CONTENT_TYPE
+import com.sparetimedevs.incubator.CONTENT_TYPE_APPLICATION_JSON
+import com.sparetimedevs.incubator.handleHttp
 import com.sparetimedevs.win.dependencyModule
 import com.sparetimedevs.win.model.CandidateViewModel
 import com.sparetimedevs.win.service.CandidateService
@@ -46,17 +49,13 @@ class GetAllCandidates(
             request: HttpRequestMessage<Optional<String>>,
             context: ExecutionContext
     ): HttpResponseMessage =
-            candidateService.getAllCandidates()
-                    .toViewModels()
-                    .redeemWith(
-                            { throwable: Throwable ->
-                                handleFailure(request, context, throwable)
-                            },
-                            { candidates: List<CandidateViewModel> ->
-                                handleSuccess(request, candidates)
-                            }
-                    )
-                    .unsafeRunSync()
+            handleHttp(
+                    request = request,
+                    context = context,
+                    domainLogic = candidateService.getAllCandidates().toViewModels(),
+                    handleSuccess = ::handleSuccess,
+                    handleFailure = ::handleFailure
+            ).unsafeRunSync()
     
     companion object {
         private const val FUNCTION_NAME = "GetAllCandidates"
