@@ -21,13 +21,12 @@ import com.microsoft.azure.functions.ExecutionContext
 import com.microsoft.azure.functions.HttpMethod
 import com.microsoft.azure.functions.HttpRequestMessage
 import com.microsoft.azure.functions.HttpResponseMessage
-import com.microsoft.azure.functions.HttpStatus
 import com.microsoft.azure.functions.annotation.AuthorizationLevel
 import com.microsoft.azure.functions.annotation.BindingName
 import com.microsoft.azure.functions.annotation.FunctionName
 import com.microsoft.azure.functions.annotation.HttpTrigger
+import com.sparetimedevs.incubator.handleHttp
 import com.sparetimedevs.win.dependencyModule
-import com.sparetimedevs.win.model.Candidate
 import com.sparetimedevs.win.model.Name
 import com.sparetimedevs.win.service.CandidateService
 import com.sparetimedevs.win.util.flattenRaisingError
@@ -51,20 +50,16 @@ class PutNextCandidate(
             @BindingName(BINDING_NAME_NAME) name: Name,
             @BindingName(BINDING_NAME_DATE) date: String
     ): HttpResponseMessage =
-            IO.effect { date.parseDate() }
-                    .flattenRaisingError()
-                    .flatMap {
-                        candidateService.addDateToCandidate(name, it)
-                    }
-                    .redeemWith(
-                            { throwable: Throwable ->
-                                handleFailure(request, context, throwable)
+            handleHttp(
+                    request = request,
+                    context = context,
+                    domainLogic = IO.effect { date.parseDate() }
+                            .flattenRaisingError()
+                            .flatMap {
+                                candidateService.addDateToCandidate(name, it)
                             },
-                            { _: Candidate ->
-                                handleSuccess(request)
-                            }
-                    )
-                    .unsafeRunSync()
+                    handleFailure = ::handleFailure
+            ).unsafeRunSync()
     
     companion object {
         private const val FUNCTION_NAME = "PutNextCandidate"
@@ -74,10 +69,3 @@ class PutNextCandidate(
         private const val ROUTE = "candidates/name/{$BINDING_NAME_NAME}/date/{$BINDING_NAME_DATE}"
     }
 }
-
-private fun handleSuccess(request: HttpRequestMessage<Optional<String>>): IO<HttpResponseMessage> =
-        IO { request.createResponse() }
-
-private fun HttpRequestMessage<Optional<String>>.createResponse(): HttpResponseMessage =
-        this.createResponseBuilder(HttpStatus.NO_CONTENT)
-                .build()

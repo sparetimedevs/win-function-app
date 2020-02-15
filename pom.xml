@@ -30,7 +30,7 @@
 
         <arrow.version>0.10.4</arrow.version>
         <suspendmongo.version>0.0.1-EXPERIMENTAL-t1fr2v</suspendmongo.version>
-        <kotlin.test.junit.version>3.3.0</kotlin.test.junit.version>
+        <kotlin.test.junit.version>3.4.2</kotlin.test.junit.version>
         <mockk.version>1.9</mockk.version>
     </properties>
 

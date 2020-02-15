@@ -19,8 +19,6 @@ package com.sparetimedevs.win.trigger
 import com.mongodb.client.model.Sorts
 import org.bson.conversions.Bson
 
-const val CONTENT_TYPE = "Content-Type"
-const val CONTENT_TYPE_APPLICATION_JSON = "application/json"
 const val FIRST_ATTENDANCE_AND_TURNS_FIELD = "firstAttendanceAndTurns"
 const val NAME_FIELD = "name"
 private val sortByFirstAttendanceAndTurnsFieldDescending: Bson = Sorts.descending(FIRST_ATTENDANCE_AND_TURNS_FIELD)

@@ -25,8 +25,11 @@ import com.microsoft.azure.functions.HttpStatus
 import com.microsoft.azure.functions.annotation.AuthorizationLevel
 import com.microsoft.azure.functions.annotation.FunctionName
 import com.microsoft.azure.functions.annotation.HttpTrigger
-import com.sparetimedevs.win.model.NextCandidateViewModel
+import com.sparetimedevs.incubator.CONTENT_TYPE
+import com.sparetimedevs.incubator.CONTENT_TYPE_APPLICATION_JSON
+import com.sparetimedevs.incubator.handleHttp
 import com.sparetimedevs.win.dependencyModule
+import com.sparetimedevs.win.model.NextCandidateViewModel
 import com.sparetimedevs.win.service.CandidateService
 import com.sparetimedevs.win.util.toViewModel
 import java.util.Optional
@@ -46,17 +49,13 @@ class GetNextCandidate(
             request: HttpRequestMessage<Optional<String>>,
             context: ExecutionContext
     ): HttpResponseMessage =
-            candidateService.determineNextCandidate()
-                    .toViewModel()
-                    .redeemWith(
-                            { throwable: Throwable ->
-                                handleFailure(request, context, throwable)
-                            },
-                            { nextCandidateViewModel: NextCandidateViewModel ->
-                                handleSuccess(request, nextCandidateViewModel)
-                            }
-                    )
-                    .unsafeRunSync()
+            handleHttp(
+                    request = request,
+                    context = context,
+                    domainLogic = candidateService.determineNextCandidate().toViewModel(),
+                    handleSuccess = ::handleSuccess,
+                    handleFailure = ::handleFailure
+            ).unsafeRunSync()
     
     companion object {
         private const val FUNCTION_NAME = "GetNextCandidate"
