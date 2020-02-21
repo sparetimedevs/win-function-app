@@ -25,7 +25,7 @@ import com.microsoft.azure.functions.annotation.AuthorizationLevel
 import com.microsoft.azure.functions.annotation.BindingName
 import com.microsoft.azure.functions.annotation.FunctionName
 import com.microsoft.azure.functions.annotation.HttpTrigger
-import com.sparetimedevs.incubator.handleHttp
+import com.sparetimedevs.bow.handleHttp
 import com.sparetimedevs.win.dependencyModule
 import com.sparetimedevs.win.model.Name
 import com.sparetimedevs.win.service.CandidateService

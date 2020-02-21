@@ -25,9 +25,9 @@ import com.microsoft.azure.functions.HttpStatus
 import com.microsoft.azure.functions.annotation.AuthorizationLevel
 import com.microsoft.azure.functions.annotation.FunctionName
 import com.microsoft.azure.functions.annotation.HttpTrigger
-import com.sparetimedevs.incubator.CONTENT_TYPE
-import com.sparetimedevs.incubator.CONTENT_TYPE_APPLICATION_JSON
-import com.sparetimedevs.incubator.handleHttp
+import com.sparetimedevs.bow.CONTENT_TYPE
+import com.sparetimedevs.bow.CONTENT_TYPE_APPLICATION_JSON
+import com.sparetimedevs.bow.handleHttp
 import com.sparetimedevs.win.dependencyModule
 import com.sparetimedevs.win.model.CandidateViewModel
 import com.sparetimedevs.win.service.CandidateService

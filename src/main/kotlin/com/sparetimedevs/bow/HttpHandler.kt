@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.sparetimedevs.incubator
+package com.sparetimedevs.bow
 
 import arrow.fx.IO
 import arrow.fx.extensions.io.functor.unit
@@ -48,14 +48,14 @@ fun <T> handleHttp(
                         }
                 )
 
-fun <T> handleSuccess(request: HttpRequestMessage<Optional<String>>, t: T): IO<HttpResponseMessage> =
+private fun <T> handleSuccess(request: HttpRequestMessage<Optional<String>>, t: T): IO<HttpResponseMessage> =
         IO { request.createResponse() }
 
-fun HttpRequestMessage<Optional<String>>.createResponse(): HttpResponseMessage =
+private fun HttpRequestMessage<Optional<String>>.createResponse(): HttpResponseMessage =
         this.createResponseBuilder(HttpStatus.NO_CONTENT)
                 .build()
 
-fun handleFailure(request: HttpRequestMessage<Optional<String>>, context: ExecutionContext, throwable: Throwable): IO<HttpResponseMessage> {
+private fun handleFailure(request: HttpRequestMessage<Optional<String>>, context: ExecutionContext, throwable: Throwable): IO<HttpResponseMessage> {
     log(context, throwable)
     return createResponse(request, throwable)
 }
