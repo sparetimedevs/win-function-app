@@ -20,6 +20,10 @@ import arrow.fx.IO
 import com.microsoft.azure.functions.ExecutionContext
 import com.microsoft.azure.functions.HttpRequestMessage
 import com.microsoft.azure.functions.HttpResponseMessage
+import com.sparetimedevs.bow.test.ALL_ASSERTIONS_ARE_POSITIVE
+import com.sparetimedevs.bow.test.generator.ExecutionContextGenerator
+import com.sparetimedevs.bow.test.generator.HttpRequestMessageGenerator
+import com.sparetimedevs.bow.test.generator.io
 import io.kotlintest.matchers.shouldBeInRange
 import io.kotlintest.matchers.types.shouldBeInstanceOf
 import io.kotlintest.properties.Gen
@@ -32,9 +36,9 @@ class HttpHandlerKtTest : BehaviorSpec({
     given("handle") {
         `when`("supplied with any request, context and domain logic") {
             then("returns a deterministic result") {
-                forAll(Gen.io(), Gen.httpRequestMessage(), Gen.executionContext()) { domainLogic: IO<Any>,
-                                                                                     request: HttpRequestMessage<Optional<String>>,
-                                                                                     context: ExecutionContext ->
+                forAll(Gen.io(), HttpRequestMessageGenerator(), ExecutionContextGenerator()) { domainLogic: IO<Any>,
+                                                                                               request: HttpRequestMessage<Optional<String>>,
+                                                                                               context: ExecutionContext ->
                     val result =
                             handleHttp(
                                     request = request,
@@ -50,9 +54,9 @@ class HttpHandlerKtTest : BehaviorSpec({
         and("unsafe run sync") {
             `when`("supplied with any request, context and domain logic") {
                 then("returns an HttpResponseMessage") {
-                    forAll(Gen.io(), Gen.httpRequestMessage(), Gen.executionContext()) { domainLogic: IO<Any>,
-                                                                                         request: HttpRequestMessage<Optional<String>>,
-                                                                                         context: ExecutionContext ->
+                    forAll(Gen.io(), HttpRequestMessageGenerator(), ExecutionContextGenerator()) { domainLogic: IO<Any>,
+                                                                                                   request: HttpRequestMessage<Optional<String>>,
+                                                                                                   context: ExecutionContext ->
                         val response =
                                 handleHttp(
                                         request = request,

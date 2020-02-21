@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.sparetimedevs.bow;
+package com.sparetimedevs.bow.test.generator;
 
 import com.microsoft.azure.functions.TraceContext;
 
