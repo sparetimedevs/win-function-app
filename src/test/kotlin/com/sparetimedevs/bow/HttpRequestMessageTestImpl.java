@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.sparetimedevs.incubator;
+package com.sparetimedevs.bow;
 
 import com.microsoft.azure.functions.HttpMethod;
 import com.microsoft.azure.functions.HttpRequestMessage;

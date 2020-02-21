@@ -21,10 +21,10 @@ import com.microsoft.azure.functions.ExecutionContext
 import com.microsoft.azure.functions.HttpRequestMessage
 import com.microsoft.azure.functions.HttpResponseMessage
 import com.microsoft.azure.functions.HttpStatus
-import com.sparetimedevs.incubator.CONTENT_TYPE
-import com.sparetimedevs.incubator.CONTENT_TYPE_APPLICATION_JSON
-import com.sparetimedevs.incubator.ErrorResponse
-import com.sparetimedevs.incubator.log
+import com.sparetimedevs.bow.CONTENT_TYPE
+import com.sparetimedevs.bow.CONTENT_TYPE_APPLICATION_JSON
+import com.sparetimedevs.bow.ErrorResponse
+import com.sparetimedevs.bow.log
 import com.sparetimedevs.win.model.DomainError
 import java.util.Optional
 
@@ -42,7 +42,7 @@ fun handleFailure(request: HttpRequestMessage<Optional<String>>, context: Execut
             }
             else -> {
                 log(context, throwable)
-                com.sparetimedevs.incubator.createResponse(request, throwable)
+                com.sparetimedevs.bow.createResponse(request, throwable)
             }
         }
 

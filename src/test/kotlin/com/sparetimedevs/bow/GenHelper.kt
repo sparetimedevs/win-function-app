@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.sparetimedevs.incubator
+package com.sparetimedevs.bow
 
 import arrow.fx.IO
 import com.microsoft.azure.functions.ExecutionContext

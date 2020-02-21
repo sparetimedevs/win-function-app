@@ -21,10 +21,10 @@ import com.microsoft.azure.functions.ExecutionContext
 import com.microsoft.azure.functions.HttpRequestMessage
 import com.microsoft.azure.functions.HttpStatus
 import com.sparetimedevs.HttpResponseMessageMock
-import com.sparetimedevs.incubator.CONTENT_TYPE
-import com.sparetimedevs.incubator.CONTENT_TYPE_APPLICATION_JSON
-import com.sparetimedevs.incubator.ErrorResponse
-import com.sparetimedevs.incubator.handleHttp
+import com.sparetimedevs.bow.CONTENT_TYPE
+import com.sparetimedevs.bow.CONTENT_TYPE_APPLICATION_JSON
+import com.sparetimedevs.bow.ErrorResponse
+import com.sparetimedevs.bow.handleHttp
 import com.sparetimedevs.test.data.candidateLois
 import com.sparetimedevs.win.algorithm.DetailsOfRolledDice
 import com.sparetimedevs.win.service.CandidateService
@@ -38,7 +38,7 @@ import java.util.Optional
 
 class GetNextCandidateTest : BehaviorSpec({
     
-    mockkStatic("com.sparetimedevs.incubator.HttpHandlerKt")
+    mockkStatic("com.sparetimedevs.bow.HttpHandlerKt")
     val request = mockk<HttpRequestMessage<Optional<String>>>()
     val context = mockk<ExecutionContext>()
     val candidateService = mockk<CandidateService>()
