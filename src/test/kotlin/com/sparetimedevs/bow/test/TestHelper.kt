@@ -14,6 +14,6 @@
  * limitations under the License.
  */
 
-package com.sparetimedevs.bow
+package com.sparetimedevs.bow.test
 
 const val ALL_ASSERTIONS_ARE_POSITIVE = true
