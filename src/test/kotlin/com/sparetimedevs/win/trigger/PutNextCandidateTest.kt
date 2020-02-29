@@ -21,12 +21,13 @@ import com.microsoft.azure.functions.ExecutionContext
 import com.microsoft.azure.functions.HttpRequestMessage
 import com.microsoft.azure.functions.HttpStatus
 import com.sparetimedevs.HttpResponseMessageMock
-import com.sparetimedevs.bow.CONTENT_TYPE
-import com.sparetimedevs.bow.CONTENT_TYPE_APPLICATION_JSON
-import com.sparetimedevs.bow.ErrorResponse
-import com.sparetimedevs.bow.handleHttp
+import com.sparetimedevs.bow.http.CONTENT_TYPE
+import com.sparetimedevs.bow.http.CONTENT_TYPE_APPLICATION_JSON
+import com.sparetimedevs.bow.http.ErrorResponse
+import com.sparetimedevs.bow.http.handleHttp
 import com.sparetimedevs.test.data.candidateLois
 import com.sparetimedevs.win.model.Candidate
+import com.sparetimedevs.win.model.DomainError
 import com.sparetimedevs.win.service.CandidateService
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.BehaviorSpec
@@ -37,28 +38,30 @@ import java.util.Optional
 
 class PutNextCandidateTest : BehaviorSpec({
     
-    mockkStatic("com.sparetimedevs.bow.HttpHandlerKt")
+    mockkStatic("com.sparetimedevs.bow.http.HttpHandlerKt")
     val request = mockk<HttpRequestMessage<Optional<String>>>()
     val context = mockk<ExecutionContext>()
     val candidateService = mockk<CandidateService>()
+    
+    every { candidateService.addDateToCandidate(any(), any()) } returns IO.raiseException(Exception("Not sure why this mock is needed."))
     
     given("put is called") {
         `when`("database is reachable") {
             then( "returns HTTP status no content") {
                 val nameInput = candidateLois.name
                 val dateInput = "20190831"
-                val ioContainingHttpResponseMessage =
-                        IO {
-                            HttpResponseMessageMock.HttpResponseMessageBuilderMock(HttpStatus.NO_CONTENT)
-                                    .build()
-                        }
+                val httpResponseMessage =
+                        HttpResponseMessageMock.HttpResponseMessageBuilderMock(HttpStatus.NO_CONTENT)
+                                .build()
                 
-                every { handleHttp(
-                        request = request,
-                        context = context,
-                        domainLogic = any<IO<Candidate>>(),
-                        handleFailure = any()
-                ) } returns ioContainingHttpResponseMessage
+                every {
+                    handleHttp(
+                            request = request,
+                            context = context,
+                            domainLogic = any<IO<DomainError, Candidate>>(),
+                            handleDomainError = any()
+                    )
+                } returns httpResponseMessage
                 
                 val response = PutNextCandidate(candidateService).put(request, context, nameInput, dateInput)
                 
@@ -71,20 +74,20 @@ class PutNextCandidateTest : BehaviorSpec({
                 val nameInput = candidateLois.name
                 val dateInput = "20190831"
                 val errorInBody: String = ErrorResponse(SERVICE_UNAVAILABLE_ERROR_MESSAGE).toString()
-                val ioContainingHttpResponseMessage =
-                        IO {
-                            HttpResponseMessageMock.HttpResponseMessageBuilderMock(HttpStatus.INTERNAL_SERVER_ERROR)
-                                    .body(errorInBody)
-                                    .header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
-                                    .build()
-                        }
+                val httpResponseMessage =
+                        HttpResponseMessageMock.HttpResponseMessageBuilderMock(HttpStatus.INTERNAL_SERVER_ERROR)
+                                .body(errorInBody)
+                                .header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
+                                .build()
                 
-                every { handleHttp(
-                        request = request,
-                        context = context,
-                        domainLogic = any<IO<Candidate>>(),
-                        handleFailure = any()
-                ) } returns ioContainingHttpResponseMessage
+                every {
+                    handleHttp(
+                            request = request,
+                            context = context,
+                            domainLogic = any<IO<DomainError, Candidate>>(),
+                            handleDomainError = any()
+                    )
+                } returns httpResponseMessage
                 
                 val response = PutNextCandidate(candidateService).put(request, context, nameInput, dateInput)
                 
@@ -99,20 +102,20 @@ class PutNextCandidateTest : BehaviorSpec({
                 val nameInput = candidateLois.name
                 val dateInput = "20190831"
                 val errorInBody: String = ErrorResponse(DATE_PARSE_ERROR_MESSAGE).toString()
-                val ioContainingHttpResponseMessage =
-                        IO {
-                            HttpResponseMessageMock.HttpResponseMessageBuilderMock(HttpStatus.BAD_REQUEST)
-                                    .body(errorInBody)
-                                    .header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
-                                    .build()
-                        }
+                val httpResponseMessage =
+                        HttpResponseMessageMock.HttpResponseMessageBuilderMock(HttpStatus.BAD_REQUEST)
+                                .body(errorInBody)
+                                .header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
+                                .build()
                 
-                every { handleHttp(
-                        request = request,
-                        context = context,
-                        domainLogic = any<IO<Candidate>>(),
-                        handleFailure = any()
-                ) } returns ioContainingHttpResponseMessage
+                every {
+                    handleHttp(
+                            request = request,
+                            context = context,
+                            domainLogic = any<IO<DomainError, Candidate>>(),
+                            handleDomainError = any()
+                    )
+                } returns httpResponseMessage
                 
                 val response = PutNextCandidate(candidateService).put(request, context, nameInput, dateInput)
                 

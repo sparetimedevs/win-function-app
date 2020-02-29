@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 sparetimedevs and respective authors and developers.
+ * Copyright (c) 2020 sparetimedevs and respective authors and developers.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,6 @@
  * limitations under the License.
  */
 
-package com.sparetimedevs.win.util
+package com.sparetimedevs.bow.http
 
-import arrow.core.Either
-import arrow.fx.IO
-
-fun <T> IO<Either<Throwable, T>>.flattenRaisingError(): IO<T> =
-        this.flatMap { eitherThrowableOrT: Either<Throwable, T> ->
-            eitherThrowableOrT.fold(
-                    { throwable: Throwable ->
-                        IO.raiseError<T>(throwable)
-                    },
-                    { t: T ->
-                        IO.just(t)
-                    }
-            )
-        }
+data class ErrorResponse(val errorMessage: String)

@@ -16,7 +16,7 @@
 
 package com.sparetimedevs.win.trigger
 
-import arrow.fx.IO
+import arrow.fx.flatMap
 import com.microsoft.azure.functions.ExecutionContext
 import com.microsoft.azure.functions.HttpMethod
 import com.microsoft.azure.functions.HttpRequestMessage
@@ -25,11 +25,10 @@ import com.microsoft.azure.functions.annotation.AuthorizationLevel
 import com.microsoft.azure.functions.annotation.BindingName
 import com.microsoft.azure.functions.annotation.FunctionName
 import com.microsoft.azure.functions.annotation.HttpTrigger
-import com.sparetimedevs.bow.handleHttp
+import com.sparetimedevs.bow.http.handleHttp
 import com.sparetimedevs.win.dependencyModule
 import com.sparetimedevs.win.model.Name
 import com.sparetimedevs.win.service.CandidateService
-import com.sparetimedevs.win.util.flattenRaisingError
 import com.sparetimedevs.win.util.parseDate
 import java.util.Optional
 
@@ -53,14 +52,13 @@ class PutNextCandidate(
             handleHttp(
                     request = request,
                     context = context,
-                    domainLogic = IO.effect { date.parseDate() }
-                            .flattenRaisingError()
+                    domainLogic = date.parseDate()
                             .flatMap {
                                 candidateService.addDateToCandidate(name, it)
                             },
-                    handleFailure = ::handleFailure
-            ).unsafeRunSync()
-    
+                    handleDomainError = ::handleDomainError
+            )
+        
     companion object {
         private const val FUNCTION_NAME = "PutNextCandidate"
         private const val TRIGGER_NAME = "putNextCandidate"

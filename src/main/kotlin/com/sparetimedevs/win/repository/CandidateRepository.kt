@@ -26,6 +26,7 @@ import com.sparetimedevs.suspendmongo.crud.readOne
 import com.sparetimedevs.suspendmongo.crud.updateOne
 import com.sparetimedevs.suspendmongo.getCollection
 import com.sparetimedevs.win.model.Candidate
+import com.sparetimedevs.win.model.DomainError
 import org.bson.conversions.Bson
 import org.bson.types.ObjectId
 
@@ -33,24 +34,24 @@ class CandidateRepository(database: Database) {
     
     private val collection = getCollection<Candidate>(database)
     
-    fun findAll(): IO<List<Candidate>> =
+    fun findAll(): IO<DomainError, List<Candidate>> =
             databaseRequest { collection.readAll() }
     
-    fun findAll(sort: Bson): IO<List<Candidate>> =
+    fun findAll(sort: Bson): IO<DomainError, List<Candidate>> =
             databaseRequest { collection.readAll(sort) }
     
-    fun findOneByName(name: String): IO<Candidate> =
+    fun findOneByName(name: String): IO<DomainError, Candidate> =
             databaseRequest { collection.readOne("name" to name) }
     
-    fun deleteAll(): IO<Boolean> =
+    fun deleteAll(): IO<DomainError, Boolean> =
             databaseRequest { collection.deleteAll() }
     
-    fun deleteOneById(id: ObjectId): IO<Candidate> =
+    fun deleteOneById(id: ObjectId): IO<DomainError, Candidate> =
             databaseRequest { collection.deleteOne(id) }
     
-    fun save(candidate: Candidate): IO<Candidate> =
+    fun save(candidate: Candidate): IO<DomainError, Candidate> =
             databaseRequest { collection.createOne(candidate) }
     
-    fun update(id: ObjectId, candidate: Candidate): IO<Candidate> =
+    fun update(id: ObjectId, candidate: Candidate): IO<DomainError, Candidate> =
             databaseRequest { collection.updateOne(id, candidate) }
 }

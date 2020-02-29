@@ -28,7 +28,7 @@
         <maven.dependency.plugin.version>3.1.1</maven.dependency.plugin.version>
         <maven.clean.plugin.version>3.1.0</maven.clean.plugin.version>
 
-        <arrow.version>0.10.4</arrow.version>
+        <arrow.version>0.11.0-SNAPSHOT</arrow.version>
         <suspendmongo.version>0.0.1-EXPERIMENTAL-t1fr2v</suspendmongo.version>
         <kotlin.test.junit.version>3.4.2</kotlin.test.junit.version>
         <mockk.version>1.9</mockk.version>
@@ -49,6 +49,10 @@
         <repository>
             <id>jcenter</id>
             <url>https://jcenter.bintray.com/</url>
+        </repository>
+        <repository>
+            <id>jfrog</id>
+            <url>https://oss.jfrog.org/artifactory/oss-snapshot-local/</url><!-- for SNAPSHOT builds of Arrow -->
         </repository>
     </repositories>
 

@@ -25,9 +25,9 @@ import com.microsoft.azure.functions.HttpStatus
 import com.microsoft.azure.functions.annotation.AuthorizationLevel
 import com.microsoft.azure.functions.annotation.FunctionName
 import com.microsoft.azure.functions.annotation.HttpTrigger
-import com.sparetimedevs.bow.CONTENT_TYPE
-import com.sparetimedevs.bow.CONTENT_TYPE_APPLICATION_JSON
-import com.sparetimedevs.bow.handleHttp
+import com.sparetimedevs.bow.http.CONTENT_TYPE
+import com.sparetimedevs.bow.http.CONTENT_TYPE_APPLICATION_JSON
+import com.sparetimedevs.bow.http.handleHttp
 import com.sparetimedevs.win.dependencyModule
 import com.sparetimedevs.win.model.CandidateViewModel
 import com.sparetimedevs.win.service.CandidateService
@@ -54,8 +54,8 @@ class GetAllCandidates(
                     context = context,
                     domainLogic = candidateService.getAllCandidates().toViewModels(),
                     handleSuccess = ::handleSuccess,
-                    handleFailure = ::handleFailure
-            ).unsafeRunSync()
+                    handleDomainError = ::handleDomainError
+            )
     
     companion object {
         private const val FUNCTION_NAME = "GetAllCandidates"
@@ -64,7 +64,8 @@ class GetAllCandidates(
     }
 }
 
-private fun handleSuccess(request: HttpRequestMessage<Optional<String>>, candidates: List<CandidateViewModel>): IO<HttpResponseMessage> =
+@Suppress("UNUSED_PARAMETER")
+private fun handleSuccess(request: HttpRequestMessage<Optional<String>>, context: ExecutionContext, candidates: List<CandidateViewModel>): IO<Nothing, HttpResponseMessage> =
         IO { request.createResponse(candidates) }
 
 private fun HttpRequestMessage<Optional<String>>.createResponse(candidates: List<CandidateViewModel>): HttpResponseMessage =

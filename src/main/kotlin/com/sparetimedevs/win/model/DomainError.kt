@@ -16,7 +16,7 @@
 
 package com.sparetimedevs.win.model
 
-sealed class DomainError(override val message: String): Throwable(message) {
+sealed class DomainError(open val message: String) {
     
     data class ToViewModelError(override val message: String = "An exception was thrown while converting to view model.") : DomainError(message)
     
