@@ -17,9 +17,11 @@
 package com.sparetimedevs.win.service
 
 import arrow.fx.IO
+import arrow.fx.flatMap
 import com.sparetimedevs.win.algorithm.CandidateAlgorithm
 import com.sparetimedevs.win.algorithm.DetailsOfAlgorithm
 import com.sparetimedevs.win.model.Candidate
+import com.sparetimedevs.win.model.DomainError
 import com.sparetimedevs.win.model.addTurn
 import com.sparetimedevs.win.repository.CandidateRepository
 import com.sparetimedevs.win.trigger.defaultSorting
@@ -30,16 +32,16 @@ class CandidateService(
         private val candidateRepository: CandidateRepository
 ) {
     
-    fun getAllCandidates(): IO<List<Candidate>> =
+    fun getAllCandidates(): IO<DomainError, List<Candidate>> =
             candidateRepository.findAll(defaultSorting)
     
-    fun determineNextCandidate(): IO<Pair<Candidate, DetailsOfAlgorithm>> =
+    fun determineNextCandidate(): IO<DomainError, Pair<Candidate, DetailsOfAlgorithm>> =
             getAllCandidates()
                     .map {
                         candidateAlgorithm.nextCandidate(it)
                     }
     
-    fun addDateToCandidate(name: String, date: Date): IO<Candidate> =
+    fun addDateToCandidate(name: String, date: Date): IO<DomainError, Candidate> =
             candidateRepository.findOneByName(name)
                     .flatMap {
                         candidateRepository.update(it.id, it.addTurn(date))

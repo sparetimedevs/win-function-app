@@ -21,14 +21,25 @@ import com.microsoft.azure.functions.HttpMethod
 import io.kotlintest.properties.Gen
 import java.net.URI
 import java.util.Optional
+import java.util.logging.Level
 
-internal fun Gen.Companion.io(): Gen<IO<Any>> =
+internal fun Gen.Companion.io(): Gen<IO<Any, Any>> =
         oneOf(
-                genAny().map(IO.Companion::just),
-                throwable().map(IO.Companion::raiseError)
+                ioJustAny(),
+                ioRaiseAnyError(),
+                ioRaiseAnyException()
         )
 
-private fun Gen.Companion.genAny(): Gen<Any> =
+internal fun Gen.Companion.ioJustAny(): Gen<IO<Nothing, Any>> =
+        any().map(IO.Companion::just)
+
+internal fun Gen.Companion.ioRaiseAnyError(): Gen<IO<Any, Nothing>> =
+        any().map(IO.Companion::raiseError)
+
+internal fun Gen.Companion.ioRaiseAnyException(): Gen<IO<Nothing, Nothing>> =
+        throwable().map(IO.Companion::raiseException)
+
+private fun Gen.Companion.any(): Gen<Any> =
         oneOf(
                 string(),
                 int(),
@@ -176,3 +187,18 @@ private class EmptyOptionalGenerator : Gen<Optional<String>> {
         Optional.empty<String>()
     }
 }
+
+internal fun Gen.Companion.logLevel(): Gen<Level> =
+        from(
+                listOf(
+                        Level.ALL,
+                        Level.FINEST,
+                        Level.FINER,
+                        Level.FINE,
+                        Level.CONFIG,
+                        Level.INFO,
+                        Level.WARNING,
+                        Level.SEVERE,
+                        Level.OFF
+                )
+        )

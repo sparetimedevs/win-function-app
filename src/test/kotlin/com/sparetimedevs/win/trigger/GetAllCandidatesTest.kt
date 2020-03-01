@@ -21,13 +21,16 @@ import com.microsoft.azure.functions.ExecutionContext
 import com.microsoft.azure.functions.HttpRequestMessage
 import com.microsoft.azure.functions.HttpStatus
 import com.sparetimedevs.HttpResponseMessageMock
-import com.sparetimedevs.bow.CONTENT_TYPE
-import com.sparetimedevs.bow.CONTENT_TYPE_APPLICATION_JSON
-import com.sparetimedevs.bow.ErrorResponse
-import com.sparetimedevs.bow.handleHttp
+import com.sparetimedevs.bow.http.CONTENT_TYPE
+import com.sparetimedevs.bow.http.CONTENT_TYPE_APPLICATION_JSON
+import com.sparetimedevs.bow.http.ErrorResponse
+import com.sparetimedevs.bow.http.handleHttp
 import com.sparetimedevs.test.data.candidates
+import com.sparetimedevs.win.model.CandidateViewModel
+import com.sparetimedevs.win.model.DomainError
 import com.sparetimedevs.win.service.CandidateService
 import com.sparetimedevs.win.util.toViewModels
+import io.kotlintest.fail
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.BehaviorSpec
 import io.mockk.every
@@ -37,33 +40,43 @@ import java.util.Optional
 
 class GetAllCandidatesTest : BehaviorSpec({
     
-    mockkStatic("com.sparetimedevs.bow.HttpHandlerKt")
+    mockkStatic("com.sparetimedevs.bow.http.HttpHandlerKt")
     val request = mockk<HttpRequestMessage<Optional<String>>>()
     val context = mockk<ExecutionContext>()
     val candidateService = mockk<CandidateService>()
     
+    every { candidateService.getAllCandidates() } returns IO.raiseException(Exception("Not sure why this mock is needed."))
+    
     given("get is called") {
         `when`("database is reachable") {
             then( "returns all candidates") {
-                val candidatesInBody: String = IO.just(candidates).toViewModels().unsafeRunSync().toString()
-                val ioContainingHttpResponseMessage =
-                        IO {
-                            HttpResponseMessageMock.HttpResponseMessageBuilderMock(HttpStatus.OK)
-                                    .body(candidatesInBody)
-                                    .header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
-                                    .build()
-                        }
+                val candidatesInBody: String =
+                        IO.just(candidates)
+                                .toViewModels()
+                                .unsafeRunSyncEither()
+                                .fold(
+                                        { fail("fail fast")},
+                                        { it }
+                                )
+                                .toString()
+                val httpResponseMessage =
+                        HttpResponseMessageMock.HttpResponseMessageBuilderMock(HttpStatus.OK)
+                                .body(candidatesInBody)
+                                .header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
+                                .build()
                 
-                every { handleHttp(
-                        request = request,
-                        context = context,
-                        domainLogic = candidateService.getAllCandidates().toViewModels(),
-                        handleSuccess = any(),
-                        handleFailure = any()
-                ) } returns ioContainingHttpResponseMessage
+                every {
+                    handleHttp(
+                            request = request,
+                            context = context,
+                            domainLogic = any<IO<DomainError, List<CandidateViewModel>>>(),
+                            handleSuccess = any(),
+                            handleDomainError = any()
+                    )
+                } returns httpResponseMessage
                 
                 val response = GetAllCandidates(candidateService).get(request, context)
-                
+
                 response.status shouldBe HttpStatus.OK
                 response.getHeader(CONTENT_TYPE) shouldBe CONTENT_TYPE_APPLICATION_JSON
                 response.body shouldBe candidatesInBody
@@ -73,21 +86,22 @@ class GetAllCandidatesTest : BehaviorSpec({
         `when`("database is unreachable") {
             then( "returns error message") {
                 val errorInBody: String = ErrorResponse(SERVICE_UNAVAILABLE_ERROR_MESSAGE).toString()
-                val ioContainingHttpResponseMessage =
-                        IO {
-                            HttpResponseMessageMock.HttpResponseMessageBuilderMock(HttpStatus.INTERNAL_SERVER_ERROR)
-                                    .body(errorInBody)
-                                    .header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
-                                    .build()
-                        }
-    
-                every { handleHttp(
-                        request = request,
-                        context = context,
-                        domainLogic = candidateService.getAllCandidates().toViewModels(),
-                        handleSuccess = any(),
-                        handleFailure = any()
-                ) } returns ioContainingHttpResponseMessage
+                val httpResponseMessage =
+                        HttpResponseMessageMock.HttpResponseMessageBuilderMock(HttpStatus.INTERNAL_SERVER_ERROR)
+                                .body(errorInBody)
+                                .header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
+                                .build()
+                
+                every {
+                    handleHttp(
+                            request = request,
+                            context = context,
+                            domainLogic = any<IO<DomainError, List<CandidateViewModel>>>(),
+                            handleSuccess = any(),
+                            handleDomainError = any(),
+                            handleSystemFailure = any()
+                    )
+                } returns httpResponseMessage
                 
                 val response = GetAllCandidates(candidateService).get(request, context)
                 

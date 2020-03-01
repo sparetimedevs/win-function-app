@@ -21,22 +21,24 @@ import arrow.core.fix
 import arrow.fx.IO
 import arrow.fx.extensions.io.applicative.applicative
 import arrow.fx.fix
+import arrow.fx.followedBy
 import com.sparetimedevs.win.model.Candidate
+import com.sparetimedevs.win.model.DomainError
 import com.sparetimedevs.win.repository.CandidateRepository
 
 class DataInitializer(private val candidateRepository: CandidateRepository) {
     
-    fun initCandidates(candidates: List<Candidate>): IO<List<Candidate>> {
+    fun initCandidates(candidates: List<Candidate>): IO<DomainError, List<Candidate>> {
         return candidateRepository.deleteAll()
                 .followedBy(insert(candidates))
     }
     
-    private fun insert(candidates: List<Candidate>): IO<List<Candidate>> =
+    private fun insert(candidates: List<Candidate>): IO<DomainError, List<Candidate>> =
             candidates.traverse(IO.applicative(), ::save).fix()
                     .map {
                         it.fix()
                     }
     
-    private fun save(candidate: Candidate): IO<Candidate> =
+    private fun save(candidate: Candidate): IO<DomainError, Candidate> =
             candidateRepository.save(candidate)
 }

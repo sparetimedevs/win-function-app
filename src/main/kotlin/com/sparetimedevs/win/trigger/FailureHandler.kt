@@ -17,36 +17,33 @@
 package com.sparetimedevs.win.trigger
 
 import arrow.fx.IO
+import arrow.fx.extensions.fx
 import com.microsoft.azure.functions.ExecutionContext
 import com.microsoft.azure.functions.HttpRequestMessage
 import com.microsoft.azure.functions.HttpResponseMessage
 import com.microsoft.azure.functions.HttpStatus
-import com.sparetimedevs.bow.CONTENT_TYPE
-import com.sparetimedevs.bow.CONTENT_TYPE_APPLICATION_JSON
-import com.sparetimedevs.bow.ErrorResponse
-import com.sparetimedevs.bow.log
+import com.sparetimedevs.bow.http.CONTENT_TYPE
+import com.sparetimedevs.bow.http.CONTENT_TYPE_APPLICATION_JSON
+import com.sparetimedevs.bow.http.ErrorResponse
+import com.sparetimedevs.bow.log.log
 import com.sparetimedevs.win.model.DomainError
 import java.util.Optional
+import java.util.logging.Level
 
 const val TO_VIEW_MODEL_ERROR_MESSAGE = "Something went wrong while transforming the data to view model."
 const val DATE_PARSE_ERROR_MESSAGE = "Something went wrong while parsing the date."
 const val ENTITY_NOT_FOUND_ERROR_MESSAGE = "What you are looking for is not found."
 const val SERVICE_UNAVAILABLE_ERROR_MESSAGE = "The service is currently unavailable."
 const val UNKNOWN_ERROR_MESSAGE = "An unknown error occurred."
+const val ERROR_MESSAGE_PREFIX = "An error has occurred. The error is:"
 
-fun handleFailure(request: HttpRequestMessage<Optional<String>>, context: ExecutionContext, throwable: Throwable): IO<HttpResponseMessage> =
-        when (throwable) {
-            is DomainError -> {
-                if (throwable is DomainError.UnknownError) log(context, throwable)
-                createResponse(request, throwable)
-            }
-            else -> {
-                log(context, throwable)
-                com.sparetimedevs.bow.createResponse(request, throwable)
-            }
+fun handleDomainError(request: HttpRequestMessage<Optional<String>>, context: ExecutionContext, domainError: DomainError): IO<Nothing, HttpResponseMessage> =
+        IO.fx<Nothing, HttpResponseMessage> {
+            if (domainError is DomainError.UnknownError) log(context, Level.SEVERE, "$ERROR_MESSAGE_PREFIX $domainError.").bind()
+            createResponse(request, domainError).bind()
         }
 
-private fun createResponse(request: HttpRequestMessage<Optional<String>>, domainError: DomainError): IO<HttpResponseMessage> =
+private fun createResponse(request: HttpRequestMessage<Optional<String>>, domainError: DomainError): IO<Nothing, HttpResponseMessage> =
         IO {
             when (domainError) {
                 is DomainError.ToViewModelError -> {

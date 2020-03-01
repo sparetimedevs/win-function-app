@@ -22,8 +22,9 @@ import com.sparetimedevs.test.data.candidateTiffany
 import com.sparetimedevs.test.data.candidates
 import com.sparetimedevs.win.model.Candidate
 import com.sparetimedevs.win.model.DomainError
+import io.kotlintest.fail
+import io.kotlintest.matchers.types.shouldBeInstanceOf
 import io.kotlintest.shouldBe
-import io.kotlintest.shouldThrow
 import io.kotlintest.specs.BehaviorSpec
 import io.mockk.coEvery
 import io.mockk.mockkStatic
@@ -35,13 +36,20 @@ class ToViewModelKtTest : BehaviorSpec({
             then("the Candidates get transformed to CandidateViewModels") {
                 val ioContainingCandidates = IO.just(candidates)
                 
-                val result = ioContainingCandidates.toViewModels().unsafeRunSync()
+                val result = ioContainingCandidates.toViewModels().unsafeRunSyncEither()
                 
-                result.forEachIndexed { index, candidateViewModel ->
-                    candidateViewModel.name shouldBe candidates[index].name
-                    candidateViewModel.firstAttendance shouldBe candidates[index].firstAttendanceAndTurns.last()
-                    candidateViewModel.turns shouldBe candidates[index].firstAttendanceAndTurns.dropLast(1)
-                }
+                result.fold(
+                        {
+                            fail("This test case should yield a Right.")
+                        },
+                        {
+                            it.forEachIndexed { index, candidateViewModel ->
+                                candidateViewModel.name shouldBe candidates[index].name
+                                candidateViewModel.firstAttendance shouldBe candidates[index].firstAttendanceAndTurns.last()
+                                candidateViewModel.turns shouldBe candidates[index].firstAttendanceAndTurns.dropLast(1)
+                            }
+                        }
+                )
             }
             
             and("one of the Candidate to CandidateViewModel transformations results in a ToViewModelError") {
@@ -50,21 +58,35 @@ class ToViewModelKtTest : BehaviorSpec({
                     val ioContainingCandidates = IO.just(candidates)
                     
                     coEvery { candidateTiffany.toViewModel() } returns Left(DomainError.ToViewModelError())
+    
+                    val result = ioContainingCandidates.toViewModels().unsafeRunSyncEither()
                     
-                    shouldThrow<DomainError.ToViewModelError> {
-                        ioContainingCandidates.toViewModels().unsafeRunSync()
-                    }
+                    result.fold(
+                            {
+                                it.shouldBeInstanceOf<DomainError.ToViewModelError>()
+                            },
+                            {
+                                fail("This test case should yield a Left.")
+                            }
+                    )
                 }
             }
         }
         
         `when`("the Either in the IO contains a ServiceUnavailable") {
             then("the ServiceUnavailable is returned") {
-                val ioContainingDomainError = IO.raiseError<List<Candidate>>(DomainError.ServiceUnavailable())
+                val ioContainingDomainError = IO.raiseError<DomainError, List<Candidate>>(DomainError.ServiceUnavailable())
                 
-                shouldThrow<DomainError.ServiceUnavailable> {
-                    ioContainingDomainError.toViewModels().unsafeRunSync()
-                }
+                val result = ioContainingDomainError.toViewModels().unsafeRunSyncEither()
+                
+                result.fold(
+                        {
+                            it.shouldBeInstanceOf<DomainError.ServiceUnavailable>()
+                        },
+                        {
+                            fail("This test case should yield a Left.")
+                        }
+                )
             }
         }
     }

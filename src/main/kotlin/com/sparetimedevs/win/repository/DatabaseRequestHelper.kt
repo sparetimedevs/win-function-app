@@ -17,16 +17,20 @@
 package com.sparetimedevs.win.repository
 
 import arrow.fx.IO
+import arrow.fx.IO.Companion.effect
 import arrow.fx.extensions.fx
 import arrow.fx.extensions.io.dispatchers.dispatchers
 import com.sparetimedevs.suspendmongo.result.Error
 import com.sparetimedevs.suspendmongo.result.Result
-import com.sparetimedevs.win.util.flattenRaisingError
+import com.sparetimedevs.win.model.DomainError
 
-inline fun <reified T: Any> databaseRequest(crossinline block: suspend () -> Result<Error, T>): IO<T> =
-        IO.fx {
-            continueOn(IO.dispatchers().io())
-            val result = !effect { block().toEither() }
-            continueOn(IO.dispatchers().default())
-            result
-        }.flattenRaisingError()
+inline fun <reified T: Any> databaseRequest(crossinline block: suspend () -> Result<Error, T>): IO<DomainError, T> =
+        IO.fx<DomainError, T> {
+            continueOn(IO.dispatchers<Nothing>().io())
+            val result = !effect { block() }
+            continueOn(IO.dispatchers<Nothing>().default())
+            when (result) {
+                is Result.Failure -> IO.raiseError<DomainError, T>(result.value.toDomainError()).bind()
+                is Result.Success -> result.value
+            }
+        }
