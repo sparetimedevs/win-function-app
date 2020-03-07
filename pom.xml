@@ -20,8 +20,8 @@
         <functionAppRegion>westeu</functionAppRegion>
         <functionResourceGroup>sparetimedevs-win</functionResourceGroup>
 
-        <kotlin.version>1.3.61</kotlin.version>
-        <functions.version>1.3.1</functions.version>
+        <kotlin.version>1.3.70</kotlin.version>
+        <bow.version>0.0.1-EXPERIMENTAL-k23p9gp</bow.version>
         <functions.plugin.version>1.4.0</functions.plugin.version>
 
         <maven.resources.plugin.version>3.1.0</maven.resources.plugin.version>
@@ -71,34 +71,21 @@
     </pluginRepositories>
 
     <dependencies>
-        <!-- Azure Functions Java Library -->
-        <dependency>
-            <groupId>com.microsoft.azure.functions</groupId>
-            <artifactId>azure-functions-java-library</artifactId>
-            <version>${functions.version}</version>
-        </dependency>
-
         <!-- Kotlin -->
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-stdlib-jdk8</artifactId>
             <version>${kotlin.version}</version>
         </dependency>
+
+        <!-- Bow Library; also contains Azure Functions Java Library and Arrow Fx Library -->
         <dependency>
-            <groupId>io.arrow-kt</groupId>
-            <artifactId>arrow-core</artifactId>
-            <version>${arrow.version}</version>
+            <groupId>com.sparetimedevs</groupId>
+            <artifactId>bow</artifactId>
+            <version>${bow.version}</version>
         </dependency>
-        <dependency>
-            <groupId>io.arrow-kt</groupId>
-            <artifactId>arrow-syntax</artifactId>
-            <version>${arrow.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.arrow-kt</groupId>
-            <artifactId>arrow-fx</artifactId>
-            <version>${arrow.version}</version>
-        </dependency>
+
+        <!-- Other production dependencies-->
         <dependency>
             <groupId>io.arrow-kt</groupId>
             <artifactId>arrow-optics</artifactId>
