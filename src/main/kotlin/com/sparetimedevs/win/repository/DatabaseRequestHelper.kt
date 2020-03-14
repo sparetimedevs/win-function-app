@@ -24,13 +24,13 @@ import com.sparetimedevs.suspendmongo.result.Error
 import com.sparetimedevs.suspendmongo.result.Result
 import com.sparetimedevs.win.model.DomainError
 
-inline fun <reified T: Any> databaseRequest(crossinline block: suspend () -> Result<Error, T>): IO<DomainError, T> =
-        IO.fx<DomainError, T> {
-            continueOn(IO.dispatchers<Nothing>().io())
-            val result = !effect { block() }
-            continueOn(IO.dispatchers<Nothing>().default())
-            when (result) {
-                is Result.Failure -> IO.raiseError<DomainError, T>(result.value.toDomainError()).bind()
-                is Result.Success -> result.value
-            }
+inline fun <reified T : Any> databaseRequest(crossinline block: suspend () -> Result<Error, T>): IO<DomainError, T> =
+    IO.fx<DomainError, T> {
+        continueOn(IO.dispatchers<Nothing>().io())
+        val result = !effect { block() }
+        continueOn(IO.dispatchers<Nothing>().default())
+        when (result) {
+            is Result.Failure -> IO.raiseError<DomainError, T>(result.value.toDomainError()).bind()
+            is Result.Success -> result.value
         }
+    }

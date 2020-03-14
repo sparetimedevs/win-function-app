@@ -28,60 +28,61 @@ import com.microsoft.azure.functions.HttpStatusType
  * src/main/resources/archetype-resources/src/test/kotlin/HttpResponseMessageMock.kt.
  */
 class HttpResponseMessageMock(
-        private val httpStatus: HttpStatusType,
-        private val headers: Map<String, String>,
-        private val body: String) : HttpResponseMessage {
-
+    private val httpStatus: HttpStatusType,
+    private val headers: Map<String, String>,
+    private val body: String
+) : HttpResponseMessage {
+    
     private val httpStatusCode: Int
-
+    
     init {
         this.httpStatusCode = httpStatus.value()
     }
-
+    
     override fun getStatus(): HttpStatusType {
         return this.httpStatus
     }
-
+    
     override fun getStatusCode(): Int {
         return httpStatusCode
     }
-
+    
     override fun getHeader(key: String): String? {
         return this.headers[key]
     }
-
+    
     override fun getBody(): String {
         return this.body
     }
-
+    
     class HttpResponseMessageBuilderMock(status: HttpStatus) : HttpResponseMessage.Builder {
-
+        
         private var httpStatusCode: Int = 0
         private var httpStatus: HttpStatusType
         private val headers: MutableMap<String, String> = mutableMapOf()
         private var body: Any? = null
-
+        
         init {
             this.httpStatusCode = status.value()
             this.httpStatus = status
         }
-
+        
         override fun status(httpStatusType: HttpStatusType): HttpResponseMessage.Builder {
             this.httpStatusCode = httpStatusType.value()
             this.httpStatus = httpStatusType
             return this
         }
-
+        
         override fun header(key: String, value: String): HttpResponseMessage.Builder {
             this.headers[key] = value
             return this
         }
-
+        
         override fun body(body: Any): HttpResponseMessage.Builder {
             this.body = body
             return this
         }
-
+        
         override fun build(): HttpResponseMessage {
             return HttpResponseMessageMock(this.httpStatus, this.headers, this.body.toString())
         }

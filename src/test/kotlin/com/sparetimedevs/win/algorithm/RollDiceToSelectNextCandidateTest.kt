@@ -33,7 +33,7 @@ class RollDiceToSelectNextCandidateTest : BehaviorSpec({
                 nextCandidate.first shouldBeOneOf candidates
             }
             
-            and( "repeating this a lot of times") {
+            and("repeating this a lot of times") {
                 then("average out the results") {
                     val mutableListOfCandidates = candidates.toMutableList()
                     var currentTopCandidate = mutableListOfCandidates.first()

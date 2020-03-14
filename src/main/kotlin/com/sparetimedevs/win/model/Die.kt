@@ -22,8 +22,8 @@ interface Rollable<T> {
     fun roll(): T
 }
 
-open class Die(private val sides: Int, private val random: Random = Random.Default): Rollable<Int> {
+open class Die(private val sides: Int, private val random: Random = Random.Default) : Rollable<Int> {
     override fun roll() = random.nextInt(1, sides + 1)
 }
 
-object D6: Die(6)
+object D6 : Die(6)

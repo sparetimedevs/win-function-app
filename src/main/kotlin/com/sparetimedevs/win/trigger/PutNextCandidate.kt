@@ -16,11 +16,13 @@
 
 package com.sparetimedevs.win.trigger
 
+import arrow.fx.IO
 import arrow.fx.flatMap
 import com.microsoft.azure.functions.ExecutionContext
 import com.microsoft.azure.functions.HttpMethod
 import com.microsoft.azure.functions.HttpRequestMessage
 import com.microsoft.azure.functions.HttpResponseMessage
+import com.microsoft.azure.functions.HttpStatus
 import com.microsoft.azure.functions.annotation.AuthorizationLevel
 import com.microsoft.azure.functions.annotation.BindingName
 import com.microsoft.azure.functions.annotation.FunctionName
@@ -30,35 +32,35 @@ import com.sparetimedevs.win.dependencyModule
 import com.sparetimedevs.win.model.Name
 import com.sparetimedevs.win.service.CandidateService
 import com.sparetimedevs.win.util.parseDate
-import java.util.Optional
 
 class PutNextCandidate(
-        private val candidateService: CandidateService = dependencyModule.candidateService
+    private val candidateService: CandidateService = dependencyModule.candidateService
 ) {
     
     @FunctionName(FUNCTION_NAME)
     fun put(
-            @HttpTrigger(
-                    name = TRIGGER_NAME,
-                    methods = [HttpMethod.PUT],
-                    route = ROUTE,
-                    authLevel = AuthorizationLevel.FUNCTION
-            )
-            request: HttpRequestMessage<Optional<String>>,
-            context: ExecutionContext,
-            @BindingName(BINDING_NAME_NAME) name: Name,
-            @BindingName(BINDING_NAME_DATE) date: String
+        @HttpTrigger(
+            name = TRIGGER_NAME,
+            methods = [HttpMethod.PUT],
+            route = ROUTE,
+            authLevel = AuthorizationLevel.FUNCTION
+        )
+        request: HttpRequestMessage<String?>,
+        context: ExecutionContext,
+        @BindingName(BINDING_NAME_NAME) name: Name,
+        @BindingName(BINDING_NAME_DATE) date: String
     ): HttpResponseMessage =
-            handleHttp(
-                    request = request,
-                    context = context,
-                    domainLogic = date.parseDate()
-                            .flatMap {
-                                candidateService.addDateToCandidate(name, it)
-                            },
-                    handleDomainError = ::handleDomainError
-            )
-        
+        handleHttp(
+            request = request,
+            context = context,
+            domainLogic = date.parseDate()
+                .flatMap {
+                    candidateService.addDateToCandidate(name, it)
+                },
+            handleSuccess = ::handleSuccess,
+            handleDomainError = ::handleDomainError
+        )
+    
     companion object {
         private const val FUNCTION_NAME = "PutNextCandidate"
         private const val TRIGGER_NAME = "putNextCandidate"
@@ -67,3 +69,11 @@ class PutNextCandidate(
         private const val ROUTE = "candidates/name/{$BINDING_NAME_NAME}/date/{$BINDING_NAME_DATE}"
     }
 }
+
+@Suppress("UNUSED_PARAMETER")
+private fun <A> handleSuccess(request: HttpRequestMessage<String?>, context: ExecutionContext, a: A): IO<Nothing, HttpResponseMessage> =
+    IO { request.createResponse() }
+
+private fun HttpRequestMessage<String?>.createResponse(): HttpResponseMessage =
+    this.createResponseBuilder(HttpStatus.NO_CONTENT)
+        .build()

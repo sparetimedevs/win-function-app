@@ -36,12 +36,11 @@ import io.kotlintest.specs.BehaviorSpec
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
-import java.util.Optional
 
 class GetAllCandidatesTest : BehaviorSpec({
     
     mockkStatic("com.sparetimedevs.bow.http.HttpHandlerKt")
-    val request = mockk<HttpRequestMessage<Optional<String>>>()
+    val request = mockk<HttpRequestMessage<String?>>()
     val context = mockk<ExecutionContext>()
     val candidateService = mockk<CandidateService>()
     
@@ -49,34 +48,34 @@ class GetAllCandidatesTest : BehaviorSpec({
     
     given("get is called") {
         `when`("database is reachable") {
-            then( "returns all candidates") {
+            then("returns all candidates") {
                 val candidatesInBody: String =
-                        IO.just(candidates)
-                                .toViewModels()
-                                .unsafeRunSyncEither()
-                                .fold(
-                                        { fail("fail fast")},
-                                        { it }
-                                )
-                                .toString()
+                    IO.just(candidates)
+                        .toViewModels()
+                        .unsafeRunSyncEither()
+                        .fold(
+                            { fail("fail fast") },
+                            { it }
+                        )
+                        .toString()
                 val httpResponseMessage =
-                        HttpResponseMessageMock.HttpResponseMessageBuilderMock(HttpStatus.OK)
-                                .body(candidatesInBody)
-                                .header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
-                                .build()
+                    HttpResponseMessageMock.HttpResponseMessageBuilderMock(HttpStatus.OK)
+                        .body(candidatesInBody)
+                        .header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
+                        .build()
                 
                 every {
                     handleHttp(
-                            request = request,
-                            context = context,
-                            domainLogic = any<IO<DomainError, List<CandidateViewModel>>>(),
-                            handleSuccess = any(),
-                            handleDomainError = any()
+                        request = request,
+                        context = context,
+                        domainLogic = any<IO<DomainError, List<CandidateViewModel>>>(),
+                        handleSuccess = any(),
+                        handleDomainError = any()
                     )
                 } returns httpResponseMessage
                 
                 val response = GetAllCandidates(candidateService).get(request, context)
-
+                
                 response.status shouldBe HttpStatus.OK
                 response.getHeader(CONTENT_TYPE) shouldBe CONTENT_TYPE_APPLICATION_JSON
                 response.body shouldBe candidatesInBody
@@ -84,22 +83,22 @@ class GetAllCandidatesTest : BehaviorSpec({
         }
         
         `when`("database is unreachable") {
-            then( "returns error message") {
+            then("returns error message") {
                 val errorInBody: String = ErrorResponse(SERVICE_UNAVAILABLE_ERROR_MESSAGE).toString()
                 val httpResponseMessage =
-                        HttpResponseMessageMock.HttpResponseMessageBuilderMock(HttpStatus.INTERNAL_SERVER_ERROR)
-                                .body(errorInBody)
-                                .header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
-                                .build()
+                    HttpResponseMessageMock.HttpResponseMessageBuilderMock(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(errorInBody)
+                        .header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
+                        .build()
                 
                 every {
                     handleHttp(
-                            request = request,
-                            context = context,
-                            domainLogic = any<IO<DomainError, List<CandidateViewModel>>>(),
-                            handleSuccess = any(),
-                            handleDomainError = any(),
-                            handleSystemFailure = any()
+                        request = request,
+                        context = context,
+                        domainLogic = any<IO<DomainError, List<CandidateViewModel>>>(),
+                        handleSuccess = any(),
+                        handleDomainError = any(),
+                        handleSystemFailure = any()
                     )
                 } returns httpResponseMessage
                 

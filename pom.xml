@@ -12,6 +12,7 @@
     <name>Azure Kotlin Function :: WIN</name>
 
     <properties>
+        <kotlin.code.style>official</kotlin.code.style>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
@@ -21,7 +22,7 @@
         <functionResourceGroup>sparetimedevs-win</functionResourceGroup>
 
         <kotlin.version>1.3.70</kotlin.version>
-        <bow.version>0.0.1-EXPERIMENTAL-k23p9gp</bow.version>
+        <bow.version>0.0.1-EXPERIMENTAL-vw3op1a</bow.version>
         <functions.plugin.version>1.4.0</functions.plugin.version>
 
         <maven.resources.plugin.version>3.1.0</maven.resources.plugin.version>
@@ -255,16 +256,16 @@
                     <execution>
                         <id>compile</id>
                         <phase>compile</phase>
-                        <goals> 
-                            <goal>compile</goal> 
+                        <goals>
+                            <goal>compile</goal>
                         </goals>
                     </execution>
 
                     <execution>
                         <id>test-compile</id>
                         <phase>test-compile</phase>
-                        <goals> 
-                            <goal>test-compile</goal> 
+                        <goals>
+                            <goal>test-compile</goal>
                         </goals>
                     </execution>
                 </executions>
