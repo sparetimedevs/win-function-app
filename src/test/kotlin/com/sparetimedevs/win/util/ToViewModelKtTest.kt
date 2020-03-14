@@ -39,16 +39,16 @@ class ToViewModelKtTest : BehaviorSpec({
                 val result = ioContainingCandidates.toViewModels().unsafeRunSyncEither()
                 
                 result.fold(
-                        {
-                            fail("This test case should yield a Right.")
-                        },
-                        {
-                            it.forEachIndexed { index, candidateViewModel ->
-                                candidateViewModel.name shouldBe candidates[index].name
-                                candidateViewModel.firstAttendance shouldBe candidates[index].firstAttendanceAndTurns.last()
-                                candidateViewModel.turns shouldBe candidates[index].firstAttendanceAndTurns.dropLast(1)
-                            }
+                    {
+                        fail("This test case should yield a Right.")
+                    },
+                    {
+                        it.forEachIndexed { index, candidateViewModel ->
+                            candidateViewModel.name shouldBe candidates[index].name
+                            candidateViewModel.firstAttendance shouldBe candidates[index].firstAttendanceAndTurns.last()
+                            candidateViewModel.turns shouldBe candidates[index].firstAttendanceAndTurns.dropLast(1)
                         }
+                    }
                 )
             }
             
@@ -58,16 +58,16 @@ class ToViewModelKtTest : BehaviorSpec({
                     val ioContainingCandidates = IO.just(candidates)
                     
                     coEvery { candidateTiffany.toViewModel() } returns Left(DomainError.ToViewModelError())
-    
+                    
                     val result = ioContainingCandidates.toViewModels().unsafeRunSyncEither()
                     
                     result.fold(
-                            {
-                                it.shouldBeInstanceOf<DomainError.ToViewModelError>()
-                            },
-                            {
-                                fail("This test case should yield a Left.")
-                            }
+                        {
+                            it.shouldBeInstanceOf<DomainError.ToViewModelError>()
+                        },
+                        {
+                            fail("This test case should yield a Left.")
+                        }
                     )
                 }
             }
@@ -80,12 +80,12 @@ class ToViewModelKtTest : BehaviorSpec({
                 val result = ioContainingDomainError.toViewModels().unsafeRunSyncEither()
                 
                 result.fold(
-                        {
-                            it.shouldBeInstanceOf<DomainError.ServiceUnavailable>()
-                        },
-                        {
-                            fail("This test case should yield a Left.")
-                        }
+                    {
+                        it.shouldBeInstanceOf<DomainError.ServiceUnavailable>()
+                    },
+                    {
+                        fail("This test case should yield a Left.")
+                    }
                 )
             }
         }

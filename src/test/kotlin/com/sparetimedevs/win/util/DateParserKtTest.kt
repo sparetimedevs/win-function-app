@@ -28,12 +28,12 @@ class DateParserKtTest : BehaviorSpec({
         `when`("operating on a valid date string") {
             then("returns correct date object") {
                 "20190831".parseDate().unsafeRunSyncEither().fold(
-                        {
-                            fail("This test case should yield a Right.")
-                        },
-                        {
-                            it.toInstant().epochSecond shouldBe 1567202400L
-                        }
+                    {
+                        fail("This test case should yield a Right.")
+                    },
+                    {
+                        it.toInstant().epochSecond shouldBe 1567202400L
+                    }
                 )
             }
         }
@@ -41,12 +41,12 @@ class DateParserKtTest : BehaviorSpec({
         `when`("operating on an invalid date string") {
             then("returns correct date object") {
                 "boom".parseDate().unsafeRunSyncEither().fold(
-                        {
-                            it.shouldBeInstanceOf<DomainError.DateParseError>()
-                        },
-                        {
-                            fail("This test case should yield a Left.")
-                        }
+                    {
+                        it.shouldBeInstanceOf<DomainError.DateParseError>()
+                    },
+                    {
+                        fail("This test case should yield a Left.")
+                    }
                 )
             }
         }
@@ -56,12 +56,12 @@ class DateParserKtTest : BehaviorSpec({
         `when`("operating on a valid date string") {
             then("returns correct date object") {
                 "20190831".parseDateSafely().fold(
-                        {
-                            fail("This test case should yield a Right.")
-                        },
-                        {
-                            it.toInstant().epochSecond shouldBe 1567202400L
-                        }
+                    {
+                        fail("This test case should yield a Right.")
+                    },
+                    {
+                        it.toInstant().epochSecond shouldBe 1567202400L
+                    }
                 )
             }
         }
@@ -69,12 +69,12 @@ class DateParserKtTest : BehaviorSpec({
         `when`("operating on an invalid date string") {
             then("returns correct date object") {
                 "boom".parseDateSafely().fold(
-                        {
-                            it.shouldBeInstanceOf<DomainError.DateParseError>()
-                        },
-                        {
-                            fail("This test case should yield a Left.")
-                        }
+                    {
+                        it.shouldBeInstanceOf<DomainError.DateParseError>()
+                    },
+                    {
+                        fail("This test case should yield a Left.")
+                    }
                 )
             }
         }

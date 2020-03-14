@@ -37,12 +37,11 @@ import io.kotlintest.specs.BehaviorSpec
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
-import java.util.Optional
 
 class GetNextCandidateTest : BehaviorSpec({
     
     mockkStatic("com.sparetimedevs.bow.http.HttpHandlerKt")
-    val request = mockk<HttpRequestMessage<Optional<String>>>()
+    val request = mockk<HttpRequestMessage<String?>>()
     val context = mockk<ExecutionContext>()
     val candidateService = mockk<CandidateService>()
     
@@ -50,30 +49,30 @@ class GetNextCandidateTest : BehaviorSpec({
     
     given("get is called") {
         `when`("database is reachable") {
-            then( "returns next candidate's name") {
+            then("returns next candidate's name") {
                 val detailsOfRolledDice = DetailsOfRolledDice(listOf(3, 1, 5, 1, 2, 4))
                 val nextCandidateAndDetailsOfAlgorithmInBody: String =
-                        IO.just(candidateLois to detailsOfRolledDice)
-                                .toViewModel()
-                                .unsafeRunSyncEither()
-                                .fold(
-                                        { fail("fail fast") },
-                                        { it }
-                                )
-                                .toString()
+                    IO.just(candidateLois to detailsOfRolledDice)
+                        .toViewModel()
+                        .unsafeRunSyncEither()
+                        .fold(
+                            { fail("fail fast") },
+                            { it }
+                        )
+                        .toString()
                 val httpResponseMessage =
-                        HttpResponseMessageMock.HttpResponseMessageBuilderMock(HttpStatus.OK)
-                                .body(nextCandidateAndDetailsOfAlgorithmInBody)
-                                .header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
-                                .build()
+                    HttpResponseMessageMock.HttpResponseMessageBuilderMock(HttpStatus.OK)
+                        .body(nextCandidateAndDetailsOfAlgorithmInBody)
+                        .header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
+                        .build()
                 
                 every {
                     handleHttp(
-                            request = request,
-                            context = context,
-                            domainLogic = any<IO<DomainError, NextCandidateViewModel>>(),
-                            handleSuccess = any(),
-                            handleDomainError = any()
+                        request = request,
+                        context = context,
+                        domainLogic = any<IO<DomainError, NextCandidateViewModel>>(),
+                        handleSuccess = any(),
+                        handleDomainError = any()
                     )
                 } returns httpResponseMessage
                 
@@ -86,21 +85,21 @@ class GetNextCandidateTest : BehaviorSpec({
         }
         
         `when`("database is unreachable") {
-            then( "returns error message") {
+            then("returns error message") {
                 val errorInBody: String = ErrorResponse(SERVICE_UNAVAILABLE_ERROR_MESSAGE).toString()
                 val httpResponseMessage =
-                        HttpResponseMessageMock.HttpResponseMessageBuilderMock(HttpStatus.INTERNAL_SERVER_ERROR)
-                                .body(errorInBody)
-                                .header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
-                                .build()
+                    HttpResponseMessageMock.HttpResponseMessageBuilderMock(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(errorInBody)
+                        .header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
+                        .build()
                 
                 every {
                     handleHttp(
-                            request = request,
-                            context = context,
-                            domainLogic = any<IO<DomainError, NextCandidateViewModel>>(),
-                            handleSuccess = any(),
-                            handleDomainError = any()
+                        request = request,
+                        context = context,
+                        domainLogic = any<IO<DomainError, NextCandidateViewModel>>(),
+                        handleSuccess = any(),
+                        handleDomainError = any()
                     )
                 } returns httpResponseMessage
                 

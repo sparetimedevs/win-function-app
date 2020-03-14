@@ -30,12 +30,12 @@ private const val DATE_FORMAT = "yyyyMMdd"
 private val dateFormat: DateFormat = SimpleDateFormat(DATE_FORMAT)
 
 fun String.parseDate(): IO<DomainError, Date> =
-        IO.effect { this.parseDateSafely() }
-                .flatMap { it.toIO() }
+    IO.effect { this.parseDateSafely() }
+        .flatMap { it.toIO() }
 
 suspend fun String.parseDateSafely(): Either<DomainError, Date> =
-        Either.catch({ throwable: Throwable ->
-            throwable.message?.let { DateParseError(it) } ?: DateParseError()
-        }) {
-            dateFormat.parse(this)
-        }
+    Either.catch({ throwable: Throwable ->
+        throwable.message?.let { DateParseError(it) } ?: DateParseError()
+    }) {
+        dateFormat.parse(this)
+    }

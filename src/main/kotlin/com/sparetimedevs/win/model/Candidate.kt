@@ -28,9 +28,9 @@ typealias Name = String
 
 @optics
 data class Candidate @BsonCreator constructor(
-        @BsonId val id: ObjectId = ObjectId(),
-        @BsonProperty("name") val name: Name,
-        @BsonProperty("firstAttendanceAndTurns") val firstAttendanceAndTurns: List<Date>
+    @BsonId val id: ObjectId = ObjectId(),
+    @BsonProperty("name") val name: Name,
+    @BsonProperty("firstAttendanceAndTurns") val firstAttendanceAndTurns: List<Date>
 ) {
     companion object
 }
@@ -40,4 +40,4 @@ private val candidateFirstAttendanceAndTurns = Candidate.firstAttendanceAndTurns
 private fun getCandidateFirstAttendanceAndTurns(candidate: Candidate) = candidateFirstAttendanceAndTurns.get(candidate)
 
 fun Candidate.addTurn(date: Date) =
-        candidateFirstAttendanceAndTurns.modify(this) { date.cons(getCandidateFirstAttendanceAndTurns(this)) }
+    candidateFirstAttendanceAndTurns.modify(this) { date.cons(getCandidateFirstAttendanceAndTurns(this)) }

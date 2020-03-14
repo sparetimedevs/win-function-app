@@ -22,14 +22,14 @@ import com.sparetimedevs.suspendmongo.result.Result
 import com.sparetimedevs.win.model.DomainError
 
 inline fun <reified T : Any> Result<Error, T>.toEither(): Either<DomainError, T> =
-        when (this) {
-            is Result.Failure -> Either.Left(this.value.toDomainError())
-            is Result.Success -> Either.Right(this.value)
-        }
+    when (this) {
+        is Result.Failure -> Either.Left(this.value.toDomainError())
+        is Result.Success -> Either.Right(this.value)
+    }
 
 fun Error.toDomainError(): DomainError =
-        when (this) {
-            is Error.EntityNotFound -> DomainError.EntityNotFound(this.message)
-            is Error.ServiceUnavailable -> DomainError.ServiceUnavailable(this.message)
-            is Error.UnknownError -> DomainError.UnknownError(this.message)
-        }
+    when (this) {
+        is Error.EntityNotFound -> DomainError.EntityNotFound(this.message)
+        is Error.ServiceUnavailable -> DomainError.ServiceUnavailable(this.message)
+        is Error.UnknownError -> DomainError.UnknownError(this.message)
+    }

@@ -42,7 +42,7 @@ class CandidateServiceTest : BehaviorSpec({
     
     given("get all candidates is called") {
         `when`("database is reachable") {
-            then( "returns all candidates") {
+            then("returns all candidates") {
                 val ioContainingCandidates: IO<DomainError, List<Candidate>> = IO.just(candidates)
                 
                 every { candidateRepository.findAll(any()) } returns ioContainingCandidates
@@ -50,31 +50,31 @@ class CandidateServiceTest : BehaviorSpec({
                 val result = candidateService.getAllCandidates().unsafeRunSyncEither()
                 
                 result.fold(
-                        {
-                            fail("This test case should yield a Right.")
-                        },
-                        {
-                            it shouldContainAll candidates
-                        }
+                    {
+                        fail("This test case should yield a Right.")
+                    },
+                    {
+                        it shouldContainAll candidates
+                    }
                 )
             }
         }
         
         `when`("database is unreachable") {
-            then( "returns IO containing the error") {
+            then("returns IO containing the error") {
                 val ioContainingError: IO<DomainError, List<Candidate>> = IO.raiseError(DomainError.ServiceUnavailable())
                 
                 every { candidateRepository.findAll(any()) } returns ioContainingError
                 
                 val result = candidateService.getAllCandidates().unsafeRunSyncEither()
-    
+                
                 result.fold(
-                        {
-                            it.shouldBeInstanceOf<DomainError.ServiceUnavailable>()
-                        },
-                        {
-                            fail("This test case should yield a Left.")
-                        }
+                    {
+                        it.shouldBeInstanceOf<DomainError.ServiceUnavailable>()
+                    },
+                    {
+                        fail("This test case should yield a Left.")
+                    }
                 )
             }
         }
@@ -82,84 +82,84 @@ class CandidateServiceTest : BehaviorSpec({
     
     given("determine next candidate is called") {
         `when`("database is reachable") {
-            then( "returns next candidate's name") {
+            then("returns next candidate's name") {
                 val ioContainingCandidates: IO<DomainError, List<Candidate>> = IO.just(candidates)
                 val detailsOfRolledDice = DetailsOfRolledDice(listOf(3, 1, 5, 1, 2, 4))
-
+                
                 every { candidateRepository.findAll(any()) } returns ioContainingCandidates
                 every { candidateAlgorithm.nextCandidate(any()) } returns (candidateLois to detailsOfRolledDice)
                 
                 val result = candidateService.determineNextCandidate().unsafeRunSyncEither()
-    
+                
                 result.fold(
-                        {
-                            fail("This test case should yield a Right.")
-                        },
-                        {
-                            it shouldBe (candidateLois to detailsOfRolledDice)
-                        }
+                    {
+                        fail("This test case should yield a Right.")
+                    },
+                    {
+                        it shouldBe (candidateLois to detailsOfRolledDice)
+                    }
                 )
             }
         }
-
+        
         `when`("database is unreachable") {
-            then( "returns IO containing the error") {
+            then("returns IO containing the error") {
                 val ioContainingError: IO<DomainError, List<Candidate>> = IO.raiseError(DomainError.ServiceUnavailable())
-
+                
                 every { candidateRepository.findAll(any()) } returns ioContainingError
                 
                 val result = candidateService.determineNextCandidate().unsafeRunSyncEither()
-    
+                
                 result.fold(
-                        {
-                            it.shouldBeInstanceOf<DomainError.ServiceUnavailable>()
-                        },
-                        {
-                            fail("This test case should yield a Left.")
-                        }
+                    {
+                        it.shouldBeInstanceOf<DomainError.ServiceUnavailable>()
+                    },
+                    {
+                        fail("This test case should yield a Left.")
+                    }
                 )
             }
         }
     }
-
+    
     given("add date to candidate is called") {
         `when`("database is reachable") {
-            then( "returns candidate") {
+            then("returns candidate") {
                 val ioContainingCandidateLois = IO.just(candidateLois)
                 val date = Date.from(Instant.ofEpochSecond(1567202400L))
-
+                
                 every { candidateRepository.findOneByName(any()) } returns ioContainingCandidateLois
                 every { candidateRepository.update(any(), any()) } returns ioContainingCandidateLois
                 
                 val result = candidateService.addDateToCandidate(candidateLois.name, date).unsafeRunSyncEither()
-    
+                
                 result.fold(
-                        {
-                            fail("This test case should yield a Right.")
-                        },
-                        {
-                            it shouldBe candidateLois
-                        }
+                    {
+                        fail("This test case should yield a Right.")
+                    },
+                    {
+                        it shouldBe candidateLois
+                    }
                 )
             }
         }
-
+        
         `when`("database is unreachable") {
-            then( "returns error message") {
+            then("returns error message") {
                 val ioContainingError = IO.raiseError<DomainError, Candidate>(DomainError.ServiceUnavailable())
                 val date = Date.from(Instant.ofEpochSecond(1567202400L))
-    
+                
                 every { candidateRepository.findOneByName(any()) } returns ioContainingError
                 
                 val result = candidateService.addDateToCandidate(candidateLois.name, date).unsafeRunSyncEither()
-    
+                
                 result.fold(
-                        {
-                            it.shouldBeInstanceOf<DomainError.ServiceUnavailable>()
-                        },
-                        {
-                            fail("This test case should yield a Left.")
-                        }
+                    {
+                        it.shouldBeInstanceOf<DomainError.ServiceUnavailable>()
+                    },
+                    {
+                        fail("This test case should yield a Left.")
+                    }
                 )
             }
         }

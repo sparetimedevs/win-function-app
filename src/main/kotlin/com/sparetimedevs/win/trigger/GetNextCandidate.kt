@@ -16,46 +16,39 @@
 
 package com.sparetimedevs.win.trigger
 
-import arrow.fx.IO
 import com.microsoft.azure.functions.ExecutionContext
 import com.microsoft.azure.functions.HttpMethod
 import com.microsoft.azure.functions.HttpRequestMessage
 import com.microsoft.azure.functions.HttpResponseMessage
-import com.microsoft.azure.functions.HttpStatus
 import com.microsoft.azure.functions.annotation.AuthorizationLevel
 import com.microsoft.azure.functions.annotation.FunctionName
 import com.microsoft.azure.functions.annotation.HttpTrigger
-import com.sparetimedevs.bow.http.CONTENT_TYPE
-import com.sparetimedevs.bow.http.CONTENT_TYPE_APPLICATION_JSON
 import com.sparetimedevs.bow.http.handleHttp
 import com.sparetimedevs.win.dependencyModule
-import com.sparetimedevs.win.model.NextCandidateViewModel
 import com.sparetimedevs.win.service.CandidateService
 import com.sparetimedevs.win.util.toViewModel
-import java.util.Optional
 
 class GetNextCandidate(
-        private val candidateService: CandidateService = dependencyModule.candidateService
+    private val candidateService: CandidateService = dependencyModule.candidateService
 ) {
     
     @FunctionName(FUNCTION_NAME)
     fun get(
-            @HttpTrigger(
-                    name = TRIGGER_NAME,
-                    methods = [HttpMethod.GET],
-                    route = ROUTE,
-                    authLevel = AuthorizationLevel.FUNCTION
-            )
-            request: HttpRequestMessage<Optional<String>>,
-            context: ExecutionContext
+        @HttpTrigger(
+            name = TRIGGER_NAME,
+            methods = [HttpMethod.GET],
+            route = ROUTE,
+            authLevel = AuthorizationLevel.FUNCTION
+        )
+        request: HttpRequestMessage<String?>,
+        context: ExecutionContext
     ): HttpResponseMessage =
-            handleHttp(
-                    request = request,
-                    context = context,
-                    domainLogic = candidateService.determineNextCandidate().toViewModel(),
-                    handleSuccess = ::handleSuccess,
-                    handleDomainError = ::handleDomainError
-            )
+        handleHttp(
+            request = request,
+            context = context,
+            domainLogic = candidateService.determineNextCandidate().toViewModel(),
+            handleDomainError = ::handleDomainError
+        )
     
     companion object {
         private const val FUNCTION_NAME = "GetNextCandidate"
@@ -63,13 +56,3 @@ class GetNextCandidate(
         private const val ROUTE = "candidates/next"
     }
 }
-
-@Suppress("UNUSED_PARAMETER")
-private fun handleSuccess(request: HttpRequestMessage<Optional<String>>, context: ExecutionContext, nextCandidateViewModel: NextCandidateViewModel): IO<Nothing, HttpResponseMessage> =
-        IO { request.createResponse(nextCandidateViewModel) }
-
-private fun HttpRequestMessage<Optional<String>>.createResponse(nextCandidateViewModel: NextCandidateViewModel): HttpResponseMessage =
-        this.createResponseBuilder(HttpStatus.OK)
-                .body(nextCandidateViewModel)
-                .header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
-                .build()

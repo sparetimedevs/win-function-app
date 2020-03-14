@@ -30,15 +30,15 @@ class DataInitializer(private val candidateRepository: CandidateRepository) {
     
     fun initCandidates(candidates: List<Candidate>): IO<DomainError, List<Candidate>> {
         return candidateRepository.deleteAll()
-                .followedBy(insert(candidates))
+            .followedBy(insert(candidates))
     }
     
     private fun insert(candidates: List<Candidate>): IO<DomainError, List<Candidate>> =
-            candidates.traverse(IO.applicative(), ::save).fix()
-                    .map {
-                        it.fix()
-                    }
+        candidates.traverse(IO.applicative(), ::save).fix()
+            .map {
+                it.fix()
+            }
     
     private fun save(candidate: Candidate): IO<DomainError, Candidate> =
-            candidateRepository.save(candidate)
+        candidateRepository.save(candidate)
 }

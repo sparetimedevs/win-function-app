@@ -34,12 +34,11 @@ import io.kotlintest.specs.BehaviorSpec
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
-import java.util.Optional
 
 class PutNextCandidateTest : BehaviorSpec({
     
     mockkStatic("com.sparetimedevs.bow.http.HttpHandlerKt")
-    val request = mockk<HttpRequestMessage<Optional<String>>>()
+    val request = mockk<HttpRequestMessage<String?>>()
     val context = mockk<ExecutionContext>()
     val candidateService = mockk<CandidateService>()
     
@@ -47,19 +46,19 @@ class PutNextCandidateTest : BehaviorSpec({
     
     given("put is called") {
         `when`("database is reachable") {
-            then( "returns HTTP status no content") {
+            then("returns HTTP status no content") {
                 val nameInput = candidateLois.name
                 val dateInput = "20190831"
                 val httpResponseMessage =
-                        HttpResponseMessageMock.HttpResponseMessageBuilderMock(HttpStatus.NO_CONTENT)
-                                .build()
+                    HttpResponseMessageMock.HttpResponseMessageBuilderMock(HttpStatus.NO_CONTENT)
+                        .build()
                 
                 every {
                     handleHttp(
-                            request = request,
-                            context = context,
-                            domainLogic = any<IO<DomainError, Candidate>>(),
-                            handleDomainError = any()
+                        request = request,
+                        context = context,
+                        domainLogic = any<IO<DomainError, Candidate>>(),
+                        handleDomainError = any()
                     )
                 } returns httpResponseMessage
                 
@@ -70,22 +69,22 @@ class PutNextCandidateTest : BehaviorSpec({
         }
         
         `when`("database is unreachable") {
-            then( "returns error message") {
+            then("returns error message") {
                 val nameInput = candidateLois.name
                 val dateInput = "20190831"
                 val errorInBody: String = ErrorResponse(SERVICE_UNAVAILABLE_ERROR_MESSAGE).toString()
                 val httpResponseMessage =
-                        HttpResponseMessageMock.HttpResponseMessageBuilderMock(HttpStatus.INTERNAL_SERVER_ERROR)
-                                .body(errorInBody)
-                                .header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
-                                .build()
+                    HttpResponseMessageMock.HttpResponseMessageBuilderMock(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(errorInBody)
+                        .header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
+                        .build()
                 
                 every {
                     handleHttp(
-                            request = request,
-                            context = context,
-                            domainLogic = any<IO<DomainError, Candidate>>(),
-                            handleDomainError = any()
+                        request = request,
+                        context = context,
+                        domainLogic = any<IO<DomainError, Candidate>>(),
+                        handleDomainError = any()
                     )
                 } returns httpResponseMessage
                 
@@ -98,22 +97,22 @@ class PutNextCandidateTest : BehaviorSpec({
         }
         
         `when`("date could not be parsed") {
-            then( "returns error message") {
+            then("returns error message") {
                 val nameInput = candidateLois.name
                 val dateInput = "20190831"
                 val errorInBody: String = ErrorResponse(DATE_PARSE_ERROR_MESSAGE).toString()
                 val httpResponseMessage =
-                        HttpResponseMessageMock.HttpResponseMessageBuilderMock(HttpStatus.BAD_REQUEST)
-                                .body(errorInBody)
-                                .header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
-                                .build()
+                    HttpResponseMessageMock.HttpResponseMessageBuilderMock(HttpStatus.BAD_REQUEST)
+                        .body(errorInBody)
+                        .header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
+                        .build()
                 
                 every {
                     handleHttp(
-                            request = request,
-                            context = context,
-                            domainLogic = any<IO<DomainError, Candidate>>(),
-                            handleDomainError = any()
+                        request = request,
+                        context = context,
+                        domainLogic = any<IO<DomainError, Candidate>>(),
+                        handleDomainError = any()
                     )
                 } returns httpResponseMessage
                 

@@ -27,7 +27,6 @@ import com.sparetimedevs.bow.http.CONTENT_TYPE_APPLICATION_JSON
 import com.sparetimedevs.bow.http.ErrorResponse
 import com.sparetimedevs.bow.log.log
 import com.sparetimedevs.win.model.DomainError
-import java.util.Optional
 import java.util.logging.Level
 
 const val TO_VIEW_MODEL_ERROR_MESSAGE = "Something went wrong while transforming the data to view model."
@@ -37,44 +36,55 @@ const val SERVICE_UNAVAILABLE_ERROR_MESSAGE = "The service is currently unavaila
 const val UNKNOWN_ERROR_MESSAGE = "An unknown error occurred."
 const val ERROR_MESSAGE_PREFIX = "An error has occurred. The error is:"
 
-fun handleDomainError(request: HttpRequestMessage<Optional<String>>, context: ExecutionContext, domainError: DomainError): IO<Nothing, HttpResponseMessage> =
-        IO.fx<Nothing, HttpResponseMessage> {
-            if (domainError is DomainError.UnknownError) log(context, Level.SEVERE, "$ERROR_MESSAGE_PREFIX $domainError.").bind()
-            createResponse(request, domainError).bind()
-        }
+fun handleDomainError(
+    request: HttpRequestMessage<String?>,
+    context: ExecutionContext,
+    domainError: DomainError
+): IO<Nothing, HttpResponseMessage> =
+    IO.fx<Nothing, HttpResponseMessage> {
+        if (domainError is DomainError.UnknownError) log(
+            context,
+            Level.SEVERE,
+            "$ERROR_MESSAGE_PREFIX $domainError."
+        ).bind()
+        createResponse(request, domainError).bind()
+    }
 
-private fun createResponse(request: HttpRequestMessage<Optional<String>>, domainError: DomainError): IO<Nothing, HttpResponseMessage> =
-        IO {
-            when (domainError) {
-                is DomainError.ToViewModelError -> {
-                    request.createResponseBuilder(HttpStatus.CONFLICT)
-                            .body(ErrorResponse(TO_VIEW_MODEL_ERROR_MESSAGE))
-                            .header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
-                            .build()
-                }
-                is DomainError.DateParseError -> {
-                    request.createResponseBuilder(HttpStatus.BAD_REQUEST)
-                            .body(ErrorResponse(DATE_PARSE_ERROR_MESSAGE))
-                            .header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
-                            .build()
-                }
-                is DomainError.EntityNotFound -> {
-                    request.createResponseBuilder(HttpStatus.NOT_FOUND)
-                            .body(ErrorResponse(ENTITY_NOT_FOUND_ERROR_MESSAGE))
-                            .header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
-                            .build()
-                }
-                is DomainError.ServiceUnavailable -> {
-                    request.createResponseBuilder(HttpStatus.SERVICE_UNAVAILABLE)
-                            .body(ErrorResponse(SERVICE_UNAVAILABLE_ERROR_MESSAGE))
-                            .header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
-                            .build()
-                }
-                is DomainError.UnknownError -> {
-                    request.createResponseBuilder(HttpStatus.INTERNAL_SERVER_ERROR)
-                            .body(ErrorResponse(UNKNOWN_ERROR_MESSAGE))
-                            .header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
-                            .build()
-                }
+private fun createResponse(
+    request: HttpRequestMessage<String?>,
+    domainError: DomainError
+): IO<Nothing, HttpResponseMessage> =
+    IO {
+        when (domainError) {
+            is DomainError.ToViewModelError -> {
+                request.createResponseBuilder(HttpStatus.CONFLICT)
+                    .body(ErrorResponse(TO_VIEW_MODEL_ERROR_MESSAGE))
+                    .header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
+                    .build()
+            }
+            is DomainError.DateParseError -> {
+                request.createResponseBuilder(HttpStatus.BAD_REQUEST)
+                    .body(ErrorResponse(DATE_PARSE_ERROR_MESSAGE))
+                    .header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
+                    .build()
+            }
+            is DomainError.EntityNotFound -> {
+                request.createResponseBuilder(HttpStatus.NOT_FOUND)
+                    .body(ErrorResponse(ENTITY_NOT_FOUND_ERROR_MESSAGE))
+                    .header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
+                    .build()
+            }
+            is DomainError.ServiceUnavailable -> {
+                request.createResponseBuilder(HttpStatus.SERVICE_UNAVAILABLE)
+                    .body(ErrorResponse(SERVICE_UNAVAILABLE_ERROR_MESSAGE))
+                    .header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
+                    .build()
+            }
+            is DomainError.UnknownError -> {
+                request.createResponseBuilder(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ErrorResponse(UNKNOWN_ERROR_MESSAGE))
+                    .header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
+                    .build()
             }
         }
+    }
