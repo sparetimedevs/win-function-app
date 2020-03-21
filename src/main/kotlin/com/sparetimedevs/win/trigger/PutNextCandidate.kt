@@ -16,8 +16,8 @@
 
 package com.sparetimedevs.win.trigger
 
-import arrow.fx.IO
-import arrow.fx.flatMap
+import arrow.core.Either
+import arrow.core.flatMap
 import com.microsoft.azure.functions.ExecutionContext
 import com.microsoft.azure.functions.HttpMethod
 import com.microsoft.azure.functions.HttpRequestMessage
@@ -27,10 +27,11 @@ import com.microsoft.azure.functions.annotation.AuthorizationLevel
 import com.microsoft.azure.functions.annotation.BindingName
 import com.microsoft.azure.functions.annotation.FunctionName
 import com.microsoft.azure.functions.annotation.HttpTrigger
-import com.sparetimedevs.bow.http.handleHttp
+import com.sparetimedevs.pofpaf.http.handleHttp
 import com.sparetimedevs.win.dependencyModule
 import com.sparetimedevs.win.model.Name
 import com.sparetimedevs.win.service.CandidateService
+import com.sparetimedevs.win.trigger.handler.handleDomainError
 import com.sparetimedevs.win.util.parseDate
 
 class PutNextCandidate(
@@ -53,10 +54,12 @@ class PutNextCandidate(
         handleHttp(
             request = request,
             context = context,
-            domainLogic = date.parseDate()
-                .flatMap {
-                    candidateService.addDateToCandidate(name, it)
-                },
+            domainLogic = {
+                date.parseDate()
+                    .flatMap {
+                        candidateService.addDateToCandidate(name, it)
+                    }
+            },
             handleSuccess = ::handleSuccess,
             handleDomainError = ::handleDomainError
         )
@@ -71,9 +74,5 @@ class PutNextCandidate(
 }
 
 @Suppress("UNUSED_PARAMETER")
-private fun <A> handleSuccess(request: HttpRequestMessage<String?>, context: ExecutionContext, a: A): IO<Nothing, HttpResponseMessage> =
-    IO { request.createResponse() }
-
-private fun HttpRequestMessage<String?>.createResponse(): HttpResponseMessage =
-    this.createResponseBuilder(HttpStatus.NO_CONTENT)
-        .build()
+private suspend fun <A> handleSuccess(request: HttpRequestMessage<out Any?>, context: ExecutionContext, a: A): Either<Throwable, HttpResponseMessage> =
+    Either.catch { request.createResponseBuilder(HttpStatus.NO_CONTENT).build() }

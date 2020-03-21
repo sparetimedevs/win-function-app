@@ -16,7 +16,9 @@
 
 package com.sparetimedevs.win.service
 
-import arrow.fx.IO
+import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
 import com.sparetimedevs.test.data.candidateLois
 import com.sparetimedevs.test.data.candidates
 import com.sparetimedevs.win.algorithm.CandidateAlgorithm
@@ -29,6 +31,7 @@ import io.kotlintest.matchers.collections.shouldContainAll
 import io.kotlintest.matchers.types.shouldBeInstanceOf
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.BehaviorSpec
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import java.time.Instant
@@ -43,11 +46,11 @@ class CandidateServiceTest : BehaviorSpec({
     given("get all candidates is called") {
         `when`("database is reachable") {
             then("returns all candidates") {
-                val ioContainingCandidates: IO<DomainError, List<Candidate>> = IO.just(candidates)
+                val eitherContianingCandidates: Either<DomainError, List<Candidate>> = candidates.right()
                 
-                every { candidateRepository.findAll(any()) } returns ioContainingCandidates
+                coEvery { candidateRepository.findAll(any()) } returns eitherContianingCandidates
                 
-                val result = candidateService.getAllCandidates().unsafeRunSyncEither()
+                val result = candidateService.getAllCandidates()
                 
                 result.fold(
                     {
@@ -61,12 +64,12 @@ class CandidateServiceTest : BehaviorSpec({
         }
         
         `when`("database is unreachable") {
-            then("returns IO containing the error") {
-                val ioContainingError: IO<DomainError, List<Candidate>> = IO.raiseError(DomainError.ServiceUnavailable())
+            then("returns Either containing the error") {
+                val eitherContainingError: Either<DomainError, List<Candidate>> = DomainError.ServiceUnavailable().left()
                 
-                every { candidateRepository.findAll(any()) } returns ioContainingError
+                coEvery { candidateRepository.findAll(any()) } returns eitherContainingError
                 
-                val result = candidateService.getAllCandidates().unsafeRunSyncEither()
+                val result = candidateService.getAllCandidates()
                 
                 result.fold(
                     {
@@ -83,13 +86,13 @@ class CandidateServiceTest : BehaviorSpec({
     given("determine next candidate is called") {
         `when`("database is reachable") {
             then("returns next candidate's name") {
-                val ioContainingCandidates: IO<DomainError, List<Candidate>> = IO.just(candidates)
+                val eitherContainingCandidates: Either<DomainError, List<Candidate>> = candidates.right()
                 val detailsOfRolledDice = DetailsOfRolledDice(listOf(3, 1, 5, 1, 2, 4))
                 
-                every { candidateRepository.findAll(any()) } returns ioContainingCandidates
+                coEvery { candidateRepository.findAll(any()) } returns eitherContainingCandidates
                 every { candidateAlgorithm.nextCandidate(any()) } returns (candidateLois to detailsOfRolledDice)
                 
-                val result = candidateService.determineNextCandidate().unsafeRunSyncEither()
+                val result = candidateService.determineNextCandidate()
                 
                 result.fold(
                     {
@@ -103,12 +106,12 @@ class CandidateServiceTest : BehaviorSpec({
         }
         
         `when`("database is unreachable") {
-            then("returns IO containing the error") {
-                val ioContainingError: IO<DomainError, List<Candidate>> = IO.raiseError(DomainError.ServiceUnavailable())
+            then("returns Either containing the error") {
+                val eitherContainingError: Either<DomainError, List<Candidate>> = DomainError.ServiceUnavailable().left()
                 
-                every { candidateRepository.findAll(any()) } returns ioContainingError
+                coEvery { candidateRepository.findAll(any()) } returns eitherContainingError
                 
-                val result = candidateService.determineNextCandidate().unsafeRunSyncEither()
+                val result = candidateService.determineNextCandidate()
                 
                 result.fold(
                     {
@@ -125,13 +128,13 @@ class CandidateServiceTest : BehaviorSpec({
     given("add date to candidate is called") {
         `when`("database is reachable") {
             then("returns candidate") {
-                val ioContainingCandidateLois = IO.just(candidateLois)
+                val eitherContainingCandidateLois = candidateLois.right()
                 val date = Date.from(Instant.ofEpochSecond(1567202400L))
                 
-                every { candidateRepository.findOneByName(any()) } returns ioContainingCandidateLois
-                every { candidateRepository.update(any(), any()) } returns ioContainingCandidateLois
+                coEvery { candidateRepository.findOneByName(any()) } returns eitherContainingCandidateLois
+                coEvery { candidateRepository.update(any(), any()) } returns eitherContainingCandidateLois
                 
-                val result = candidateService.addDateToCandidate(candidateLois.name, date).unsafeRunSyncEither()
+                val result = candidateService.addDateToCandidate(candidateLois.name, date)
                 
                 result.fold(
                     {
@@ -146,12 +149,12 @@ class CandidateServiceTest : BehaviorSpec({
         
         `when`("database is unreachable") {
             then("returns error message") {
-                val ioContainingError = IO.raiseError<DomainError, Candidate>(DomainError.ServiceUnavailable())
+                val eitherContainingError = DomainError.ServiceUnavailable().left()
                 val date = Date.from(Instant.ofEpochSecond(1567202400L))
                 
-                every { candidateRepository.findOneByName(any()) } returns ioContainingError
+                coEvery { candidateRepository.findOneByName(any()) } returns eitherContainingError
                 
-                val result = candidateService.addDateToCandidate(candidateLois.name, date).unsafeRunSyncEither()
+                val result = candidateService.addDateToCandidate(candidateLois.name, date)
                 
                 result.fold(
                     {

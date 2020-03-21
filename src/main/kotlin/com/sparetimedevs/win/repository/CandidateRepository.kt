@@ -16,7 +16,7 @@
 
 package com.sparetimedevs.win.repository
 
-import arrow.fx.IO
+import arrow.core.Either
 import com.sparetimedevs.suspendmongo.Database
 import com.sparetimedevs.suspendmongo.crud.createOne
 import com.sparetimedevs.suspendmongo.crud.deleteAll
@@ -34,24 +34,24 @@ class CandidateRepository(database: Database) {
     
     private val collection = getCollection<Candidate>(database)
     
-    fun findAll(): IO<DomainError, List<Candidate>> =
+    suspend fun findAll(): Either<DomainError, List<Candidate>> =
         databaseRequest { collection.readAll() }
     
-    fun findAll(sort: Bson): IO<DomainError, List<Candidate>> =
+    suspend fun findAll(sort: Bson): Either<DomainError, List<Candidate>> =
         databaseRequest { collection.readAll(sort) }
     
-    fun findOneByName(name: String): IO<DomainError, Candidate> =
+    suspend fun findOneByName(name: String): Either<DomainError, Candidate> =
         databaseRequest { collection.readOne("name" to name) }
     
-    fun deleteAll(): IO<DomainError, Boolean> =
+    suspend fun deleteAll(): Either<DomainError, Boolean> =
         databaseRequest { collection.deleteAll() }
     
-    fun deleteOneById(id: ObjectId): IO<DomainError, Candidate> =
+    suspend fun deleteOneById(id: ObjectId): Either<DomainError, Candidate> =
         databaseRequest { collection.deleteOne(id) }
     
-    fun save(candidate: Candidate): IO<DomainError, Candidate> =
+    suspend fun save(candidate: Candidate): Either<DomainError, Candidate> =
         databaseRequest { collection.createOne(candidate) }
     
-    fun update(id: ObjectId, candidate: Candidate): IO<DomainError, Candidate> =
+    suspend fun update(id: ObjectId, candidate: Candidate): Either<DomainError, Candidate> =
         databaseRequest { collection.updateOne(id, candidate) }
 }

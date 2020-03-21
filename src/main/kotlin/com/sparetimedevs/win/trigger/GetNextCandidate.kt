@@ -23,9 +23,10 @@ import com.microsoft.azure.functions.HttpResponseMessage
 import com.microsoft.azure.functions.annotation.AuthorizationLevel
 import com.microsoft.azure.functions.annotation.FunctionName
 import com.microsoft.azure.functions.annotation.HttpTrigger
-import com.sparetimedevs.bow.http.handleHttp
+import com.sparetimedevs.pofpaf.http.handleHttp
 import com.sparetimedevs.win.dependencyModule
 import com.sparetimedevs.win.service.CandidateService
+import com.sparetimedevs.win.trigger.handler.handleDomainError
 import com.sparetimedevs.win.util.toViewModel
 
 class GetNextCandidate(
@@ -46,7 +47,7 @@ class GetNextCandidate(
         handleHttp(
             request = request,
             context = context,
-            domainLogic = candidateService.determineNextCandidate().toViewModel(),
+            domainLogic = { candidateService.determineNextCandidate().toViewModel() },
             handleDomainError = ::handleDomainError
         )
     

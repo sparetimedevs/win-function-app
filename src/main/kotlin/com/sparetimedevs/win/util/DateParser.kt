@@ -17,9 +17,6 @@
 package com.sparetimedevs.win.util
 
 import arrow.core.Either
-import arrow.fx.IO
-import arrow.fx.extensions.toIO
-import arrow.fx.flatMap
 import com.sparetimedevs.win.model.DomainError
 import com.sparetimedevs.win.model.DomainError.DateParseError
 import java.text.DateFormat
@@ -29,11 +26,7 @@ import java.util.Date
 private const val DATE_FORMAT = "yyyyMMdd"
 private val dateFormat: DateFormat = SimpleDateFormat(DATE_FORMAT)
 
-fun String.parseDate(): IO<DomainError, Date> =
-    IO.effect { this.parseDateSafely() }
-        .flatMap { it.toIO() }
-
-suspend fun String.parseDateSafely(): Either<DomainError, Date> =
+suspend fun String.parseDate(): Either<DomainError, Date> =
     Either.catch({ throwable: Throwable ->
         throwable.message?.let { DateParseError(it) } ?: DateParseError()
     }) {

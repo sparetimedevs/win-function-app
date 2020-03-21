@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 sparetimedevs and respective authors and developers.
+ * Copyright (c) 2020 sparetimedevs and respective authors and developers.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,17 @@
  * limitations under the License.
  */
 
-package com.sparetimedevs.win.trigger
+package com.sparetimedevs.win.trigger.handler
 
-import arrow.fx.IO
-import arrow.fx.extensions.fx
+import arrow.core.Either
 import com.microsoft.azure.functions.ExecutionContext
 import com.microsoft.azure.functions.HttpRequestMessage
 import com.microsoft.azure.functions.HttpResponseMessage
 import com.microsoft.azure.functions.HttpStatus
-import com.sparetimedevs.bow.http.CONTENT_TYPE
-import com.sparetimedevs.bow.http.CONTENT_TYPE_APPLICATION_JSON
-import com.sparetimedevs.bow.http.ErrorResponse
-import com.sparetimedevs.bow.log.log
+import com.sparetimedevs.pofpaf.http.CONTENT_TYPE
+import com.sparetimedevs.pofpaf.http.CONTENT_TYPE_APPLICATION_JSON
+import com.sparetimedevs.pofpaf.http.ErrorResponse
+import com.sparetimedevs.pofpaf.log.log
 import com.sparetimedevs.win.model.DomainError
 import java.util.logging.Level
 
@@ -36,25 +35,24 @@ const val SERVICE_UNAVAILABLE_ERROR_MESSAGE = "The service is currently unavaila
 const val UNKNOWN_ERROR_MESSAGE = "An unknown error occurred."
 const val ERROR_MESSAGE_PREFIX = "An error has occurred. The error is:"
 
-fun handleDomainError(
-    request: HttpRequestMessage<String?>,
+suspend fun handleDomainError(
+    request: HttpRequestMessage<out Any?>,
     context: ExecutionContext,
     domainError: DomainError
-): IO<Nothing, HttpResponseMessage> =
-    IO.fx<Nothing, HttpResponseMessage> {
-        if (domainError is DomainError.UnknownError) log(
-            context,
-            Level.SEVERE,
-            "$ERROR_MESSAGE_PREFIX $domainError."
-        ).bind()
-        createResponse(request, domainError).bind()
-    }
+): Either<Throwable, HttpResponseMessage> {
+    if (domainError is DomainError.UnknownError) log(
+        context,
+        Level.SEVERE,
+        "$ERROR_MESSAGE_PREFIX $domainError."
+    )
+    return createResponse(request, domainError)
+}
 
-private fun createResponse(
-    request: HttpRequestMessage<String?>,
+private suspend fun createResponse(
+    request: HttpRequestMessage<out Any?>,
     domainError: DomainError
-): IO<Nothing, HttpResponseMessage> =
-    IO {
+): Either<Throwable, HttpResponseMessage> =
+    Either.catch {
         when (domainError) {
             is DomainError.ToViewModelError -> {
                 request.createResponseBuilder(HttpStatus.CONFLICT)

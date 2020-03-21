@@ -17,10 +17,12 @@
 package com.sparetimedevs.win.util
 
 import arrow.core.Either
-import arrow.fx.IO
-import arrow.fx.extensions.fx
-import arrow.fx.extensions.io.concurrent.parTraverse
-import arrow.fx.flatMap
+import arrow.core.extensions.either.applicative.applicative
+import arrow.core.extensions.either.monad.map
+import arrow.core.extensions.list.traverse.sequence
+import arrow.core.fix
+import arrow.core.flatMap
+import arrow.fx.coroutines.parTraverse
 import com.sparetimedevs.win.algorithm.DetailsOfAlgorithm
 import com.sparetimedevs.win.model.Candidate
 import com.sparetimedevs.win.model.CandidateViewModel
@@ -28,25 +30,15 @@ import com.sparetimedevs.win.model.DomainError
 import com.sparetimedevs.win.model.DomainError.ToViewModelError
 import com.sparetimedevs.win.model.NextCandidateViewModel
 
-fun IO<DomainError, List<Candidate>>.toViewModels(): IO<DomainError, List<CandidateViewModel>> =
-    this.flatMap { candidates: List<Candidate> ->
-        candidates.parTraverse(::toViewModel)
-    }
-
-fun toViewModel(candidate: Candidate): IO<DomainError, CandidateViewModel> =
-    IO.fx<DomainError, CandidateViewModel> {
-        val result = IO.effect {
-            candidate.toViewModel()
-        }.bind()
-        result.fold(
-            {
-                IO.raiseError<DomainError, CandidateViewModel>(it).bind()
-            },
-            {
-                it
-            }
-        )
-    }
+suspend fun Either<DomainError, List<Candidate>>.toViewModels(): Either<DomainError, List<CandidateViewModel>> =
+    this
+        .map { candidates: List<Candidate> ->
+            candidates.parTraverse { candidate -> candidate.toViewModel() }
+        }
+        .flatMap { candidates: List<Either<DomainError, CandidateViewModel>> ->
+            candidates.sequence(Either.applicative())
+                .map { it.fix() }
+        }
 
 suspend fun Candidate.toViewModel(): Either<DomainError, CandidateViewModel> =
     Either.catch({ throwable: Throwable ->
@@ -55,7 +47,7 @@ suspend fun Candidate.toViewModel(): Either<DomainError, CandidateViewModel> =
         CandidateViewModel(name, firstAttendanceAndTurns.last(), firstAttendanceAndTurns.dropLast(1))
     }
 
-fun IO<DomainError, Pair<Candidate, DetailsOfAlgorithm>>.toViewModel(): IO<DomainError, NextCandidateViewModel> =
+fun Either<DomainError, Pair<Candidate, DetailsOfAlgorithm>>.toViewModel(): Either<DomainError, NextCandidateViewModel> =
     this.map {
         it.toViewModel()
     }

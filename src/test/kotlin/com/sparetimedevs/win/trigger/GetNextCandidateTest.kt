@@ -16,45 +16,47 @@
 
 package com.sparetimedevs.win.trigger
 
-import arrow.fx.IO
+import arrow.core.Either
+import arrow.core.right
 import com.microsoft.azure.functions.ExecutionContext
 import com.microsoft.azure.functions.HttpRequestMessage
 import com.microsoft.azure.functions.HttpStatus
 import com.sparetimedevs.HttpResponseMessageMock
-import com.sparetimedevs.bow.http.CONTENT_TYPE
-import com.sparetimedevs.bow.http.CONTENT_TYPE_APPLICATION_JSON
-import com.sparetimedevs.bow.http.ErrorResponse
-import com.sparetimedevs.bow.http.handleHttp
+import com.sparetimedevs.pofpaf.http.CONTENT_TYPE
+import com.sparetimedevs.pofpaf.http.CONTENT_TYPE_APPLICATION_JSON
+import com.sparetimedevs.pofpaf.http.ErrorResponse
+import com.sparetimedevs.pofpaf.http.handleHttp
 import com.sparetimedevs.test.data.candidateLois
 import com.sparetimedevs.win.algorithm.DetailsOfRolledDice
 import com.sparetimedevs.win.model.DomainError
 import com.sparetimedevs.win.model.NextCandidateViewModel
 import com.sparetimedevs.win.service.CandidateService
+import com.sparetimedevs.win.trigger.handler.SERVICE_UNAVAILABLE_ERROR_MESSAGE
 import com.sparetimedevs.win.util.toViewModel
 import io.kotlintest.fail
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.BehaviorSpec
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
 
 class GetNextCandidateTest : BehaviorSpec({
     
-    mockkStatic("com.sparetimedevs.bow.http.HttpHandlerKt")
+    mockkStatic("com.sparetimedevs.pofpaf.http.HttpHandlerKt")
     val request = mockk<HttpRequestMessage<String?>>()
     val context = mockk<ExecutionContext>()
     val candidateService = mockk<CandidateService>()
     
-    every { candidateService.determineNextCandidate() } returns IO.raiseException(Exception("Not sure why this mock is needed."))
+    coEvery { candidateService.determineNextCandidate() } throws Exception("This mock makes sure that if the handleHttp function is not mocked properly, the test case will fail.")
     
     given("get is called") {
         `when`("database is reachable") {
             then("returns next candidate's name") {
                 val detailsOfRolledDice = DetailsOfRolledDice(listOf(3, 1, 5, 1, 2, 4))
                 val nextCandidateAndDetailsOfAlgorithmInBody: String =
-                    IO.just(candidateLois to detailsOfRolledDice)
+                    (candidateLois to detailsOfRolledDice).right()
                         .toViewModel()
-                        .unsafeRunSyncEither()
                         .fold(
                             { fail("fail fast") },
                             { it }
@@ -70,7 +72,7 @@ class GetNextCandidateTest : BehaviorSpec({
                     handleHttp(
                         request = request,
                         context = context,
-                        domainLogic = any<IO<DomainError, NextCandidateViewModel>>(),
+                        domainLogic = any<suspend () -> Either<DomainError, NextCandidateViewModel>>(),
                         handleSuccess = any(),
                         handleDomainError = any()
                     )
@@ -97,7 +99,7 @@ class GetNextCandidateTest : BehaviorSpec({
                     handleHttp(
                         request = request,
                         context = context,
-                        domainLogic = any<IO<DomainError, NextCandidateViewModel>>(),
+                        domainLogic = any<suspend () -> Either<DomainError, NextCandidateViewModel>>(),
                         handleSuccess = any(),
                         handleDomainError = any()
                     )

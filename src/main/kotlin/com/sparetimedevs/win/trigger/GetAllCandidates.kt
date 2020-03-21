@@ -23,9 +23,11 @@ import com.microsoft.azure.functions.HttpResponseMessage
 import com.microsoft.azure.functions.annotation.AuthorizationLevel
 import com.microsoft.azure.functions.annotation.FunctionName
 import com.microsoft.azure.functions.annotation.HttpTrigger
-import com.sparetimedevs.bow.http.handleHttp
+import com.sparetimedevs.pofpaf.http.handleHttp
 import com.sparetimedevs.win.dependencyModule
 import com.sparetimedevs.win.service.CandidateService
+import com.sparetimedevs.win.trigger.handler.handleDomainError
+import com.sparetimedevs.win.trigger.handler.handleSuccessWithDefaultOrTextPlainHandler
 import com.sparetimedevs.win.util.toViewModels
 
 class GetAllCandidates(
@@ -46,7 +48,8 @@ class GetAllCandidates(
         handleHttp(
             request = request,
             context = context,
-            domainLogic = candidateService.getAllCandidates().toViewModels(),
+            domainLogic = { candidateService.getAllCandidates().toViewModels() },
+            handleSuccess = ::handleSuccessWithDefaultOrTextPlainHandler,
             handleDomainError = ::handleDomainError
         )
     
