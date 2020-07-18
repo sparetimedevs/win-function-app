@@ -16,33 +16,41 @@
 
 package com.sparetimedevs.win.trigger
 
-import arrow.fx.IO
+import arrow.core.Either
 import com.microsoft.azure.functions.ExecutionContext
 import com.microsoft.azure.functions.HttpRequestMessage
 import com.microsoft.azure.functions.HttpStatus
 import com.sparetimedevs.HttpResponseMessageMock
-import com.sparetimedevs.bow.http.CONTENT_TYPE
-import com.sparetimedevs.bow.http.CONTENT_TYPE_APPLICATION_JSON
-import com.sparetimedevs.bow.http.ErrorResponse
-import com.sparetimedevs.bow.http.handleHttp
+import com.sparetimedevs.pofpaf.http.CONTENT_TYPE
+import com.sparetimedevs.pofpaf.http.CONTENT_TYPE_APPLICATION_JSON
+import com.sparetimedevs.pofpaf.http.ErrorResponse
+import com.sparetimedevs.pofpaf.http.handleHttp
 import com.sparetimedevs.test.data.candidateLois
 import com.sparetimedevs.win.model.Candidate
 import com.sparetimedevs.win.model.DomainError
 import com.sparetimedevs.win.service.CandidateService
+import com.sparetimedevs.win.trigger.handler.DATE_PARSE_ERROR_MESSAGE
+import com.sparetimedevs.win.trigger.handler.SERVICE_UNAVAILABLE_ERROR_MESSAGE
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.BehaviorSpec
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
 
 class PutNextCandidateTest : BehaviorSpec({
     
-    mockkStatic("com.sparetimedevs.bow.http.HttpHandlerKt")
-    val request = mockk<HttpRequestMessage<String?>>()
+    mockkStatic("com.sparetimedevs.pofpaf.http.HttpHandlerKt")
+    val request = mockk<HttpRequestMessage<String?>>(relaxed = true)
     val context = mockk<ExecutionContext>()
     val candidateService = mockk<CandidateService>()
     
-    every { candidateService.addDateToCandidate(any(), any()) } returns IO.raiseException(Exception("Not sure why this mock is needed."))
+    coEvery {
+        candidateService.addDateToCandidate(
+            any(),
+            any()
+        )
+    } throws Exception("This mock makes sure that if the handleHttp function is not mocked properly, the test case will fail.")
     
     given("put is called") {
         `when`("database is reachable") {
@@ -57,7 +65,8 @@ class PutNextCandidateTest : BehaviorSpec({
                     handleHttp(
                         request = request,
                         context = context,
-                        domainLogic = any<IO<DomainError, Candidate>>(),
+                        domainLogic = any<suspend () -> Either<DomainError, Candidate>>(),
+                        handleSuccess = any(),
                         handleDomainError = any()
                     )
                 } returns httpResponseMessage
@@ -83,7 +92,8 @@ class PutNextCandidateTest : BehaviorSpec({
                     handleHttp(
                         request = request,
                         context = context,
-                        domainLogic = any<IO<DomainError, Candidate>>(),
+                        domainLogic = any<suspend () -> Either<DomainError, Candidate>>(),
+                        handleSuccess = any(),
                         handleDomainError = any()
                     )
                 } returns httpResponseMessage
@@ -111,7 +121,8 @@ class PutNextCandidateTest : BehaviorSpec({
                     handleHttp(
                         request = request,
                         context = context,
-                        domainLogic = any<IO<DomainError, Candidate>>(),
+                        domainLogic = any<suspend () -> Either<DomainError, Candidate>>(),
+                        handleSuccess = any(),
                         handleDomainError = any()
                     )
                 } returns httpResponseMessage

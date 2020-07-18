@@ -16,69 +16,102 @@
 
 package com.sparetimedevs.win.trigger
 
-import arrow.fx.IO
+import arrow.core.Either
+import arrow.core.right
 import com.microsoft.azure.functions.ExecutionContext
 import com.microsoft.azure.functions.HttpRequestMessage
 import com.microsoft.azure.functions.HttpStatus
 import com.sparetimedevs.HttpResponseMessageMock
-import com.sparetimedevs.bow.http.CONTENT_TYPE
-import com.sparetimedevs.bow.http.CONTENT_TYPE_APPLICATION_JSON
-import com.sparetimedevs.bow.http.ErrorResponse
-import com.sparetimedevs.bow.http.handleHttp
+import com.sparetimedevs.pofpaf.http.CONTENT_TYPE
+import com.sparetimedevs.pofpaf.http.CONTENT_TYPE_APPLICATION_JSON
+import com.sparetimedevs.pofpaf.http.ErrorResponse
+import com.sparetimedevs.pofpaf.http.handleHttp
 import com.sparetimedevs.test.data.candidates
 import com.sparetimedevs.win.model.CandidateViewModel
 import com.sparetimedevs.win.model.DomainError
 import com.sparetimedevs.win.service.CandidateService
+import com.sparetimedevs.win.trigger.handler.CONTENT_TYPE_TEXT_PLAIN_UTF_8
+import com.sparetimedevs.win.trigger.handler.SERVICE_UNAVAILABLE_ERROR_MESSAGE
 import com.sparetimedevs.win.util.toViewModels
 import io.kotlintest.fail
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.BehaviorSpec
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
 
 class GetAllCandidatesTest : BehaviorSpec({
     
-    mockkStatic("com.sparetimedevs.bow.http.HttpHandlerKt")
+    mockkStatic("com.sparetimedevs.pofpaf.http.HttpHandlerKt")
     val request = mockk<HttpRequestMessage<String?>>()
     val context = mockk<ExecutionContext>()
     val candidateService = mockk<CandidateService>()
     
-    every { candidateService.getAllCandidates() } returns IO.raiseException(Exception("Not sure why this mock is needed."))
+    coEvery { candidateService.getAllCandidates() } throws Exception("This mock makes sure that if the handleHttp function is not mocked properly, the test case will fail.")
     
     given("get is called") {
-        `when`("database is reachable") {
-            then("returns all candidates") {
-                val candidatesInBody: String =
-                    IO.just(candidates)
-                        .toViewModels()
-                        .unsafeRunSyncEither()
-                        .fold(
-                            { fail("fail fast") },
-                            { it }
+        and("accept header contains application/json") {
+            `when`("database is reachable") {
+                then("returns all candidates") {
+                    val candidatesInBody: String =
+                        candidates.right()
+                            .toViewModels()
+                            .fold(
+                                { fail("fail fast") },
+                                { it }
+                            )
+                            .toString()
+                    val httpResponseMessage =
+                        HttpResponseMessageMock.HttpResponseMessageBuilderMock(HttpStatus.OK)
+                            .body(candidatesInBody)
+                            .header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
+                            .build()
+                    
+                    every {
+                        handleHttp(
+                            request = request,
+                            context = context,
+                            domainLogic = any<suspend () -> Either<DomainError, List<CandidateViewModel>>>(),
+                            handleSuccess = any(),
+                            handleDomainError = any()
                         )
-                        .toString()
-                val httpResponseMessage =
-                    HttpResponseMessageMock.HttpResponseMessageBuilderMock(HttpStatus.OK)
-                        .body(candidatesInBody)
-                        .header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
-                        .build()
-                
-                every {
-                    handleHttp(
-                        request = request,
-                        context = context,
-                        domainLogic = any<IO<DomainError, List<CandidateViewModel>>>(),
-                        handleSuccess = any(),
-                        handleDomainError = any()
-                    )
-                } returns httpResponseMessage
-                
-                val response = GetAllCandidates(candidateService).get(request, context)
-                
-                response.status shouldBe HttpStatus.OK
-                response.getHeader(CONTENT_TYPE) shouldBe CONTENT_TYPE_APPLICATION_JSON
-                response.body shouldBe candidatesInBody
+                    } returns httpResponseMessage
+                    
+                    val response = GetAllCandidates(candidateService).get(request, context)
+                    
+                    response.status shouldBe HttpStatus.OK
+                    response.getHeader(CONTENT_TYPE) shouldBe CONTENT_TYPE_APPLICATION_JSON
+                    response.body shouldBe candidatesInBody
+                }
+            }
+        }
+        
+        and("accept header contains text/plain and does not contain application/json") {
+            `when`("database is reachable") {
+                then("returns all candidates") {
+                    val httpResponseMessage =
+                        HttpResponseMessageMock.HttpResponseMessageBuilderMock(HttpStatus.OK)
+                            .body(EXPECTED_TEXT_PLAIN_BODY)
+                            .header(CONTENT_TYPE, CONTENT_TYPE_TEXT_PLAIN_UTF_8)
+                            .build()
+                    
+                    every {
+                        handleHttp(
+                            request = request,
+                            context = context,
+                            domainLogic = any<suspend () -> Either<DomainError, List<CandidateViewModel>>>(),
+                            handleSuccess = any(),
+                            handleDomainError = any()
+                        )
+                    } returns httpResponseMessage
+                    
+                    val response = GetAllCandidates(candidateService).get(request, context)
+                    
+                    response.status shouldBe HttpStatus.OK
+                    response.getHeader(CONTENT_TYPE) shouldBe CONTENT_TYPE_TEXT_PLAIN_UTF_8
+                    response.body shouldBe EXPECTED_TEXT_PLAIN_BODY
+                }
             }
         }
         
@@ -95,7 +128,7 @@ class GetAllCandidatesTest : BehaviorSpec({
                     handleHttp(
                         request = request,
                         context = context,
-                        domainLogic = any<IO<DomainError, List<CandidateViewModel>>>(),
+                        domainLogic = any<suspend () -> Either<DomainError, List<CandidateViewModel>>>(),
                         handleSuccess = any(),
                         handleDomainError = any(),
                         handleSystemFailure = any()
@@ -110,4 +143,32 @@ class GetAllCandidatesTest : BehaviorSpec({
             }
         }
     }
-})
+}) {
+    companion object {
+        private const val EXPECTED_TEXT_PLAIN_BODY = """| Number in list | Name | Dates | First attendance |
+|--|--|--|--|
+| 1 | Rose | 2020-06-29, 2020-05-08, 2020-03-25 | 2020-02-28 |
+| 2 | Abbie | 2020-06-11 | 2020-02-28 |
+| 3 | Tommy |  | 2020-02-28 |
+| 4 | Joseph | 2020-07-27, 2020-05-28 | 2020-02-28 |
+| 5 | Fani |  | 2020-02-28 |
+| 6 | Eden |  | 2020-02-28 |
+| 7 | Tiffany |  | 2020-02-28 |
+| 8 | Aisha |  | 2020-02-28 |
+| 9 | Elsa |  | 2020-06-11 |
+| 10 | Ellen |  | 2020-02-28 |
+| 11 | Cerys |  | 2020-02-28 |
+| 12 | James |  | 2020-06-29 |
+| 13 | Kevin |  | 2020-02-28 |
+| 14 | William |  | 2020-02-28 |
+| 15 | Elle |  | 2020-02-28 |
+| 16 | Lois |  | 2020-02-28 |
+| 17 | Alexa |  | 2020-02-28 |
+| 18 | Kimberley |  | 2020-02-28 |
+| 19 | Saffron |  | 2020-02-28 |
+| 20 | Penny |  | 2020-02-28 |
+| 21 | George |  | 2020-02-28 |
+| 22 | Margaret |  | 2020-02-28 |"""
+    }
+}
+

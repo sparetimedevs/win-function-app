@@ -16,21 +16,24 @@
 
 package com.sparetimedevs.win.repository
 
-import arrow.fx.IO
-import arrow.fx.IO.Companion.effect
-import arrow.fx.extensions.fx
-import arrow.fx.extensions.io.dispatchers.dispatchers
+import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
+import arrow.fx.coroutines.IOPool
+import arrow.fx.coroutines.evalOn
 import com.sparetimedevs.suspendmongo.result.Error
 import com.sparetimedevs.suspendmongo.result.Result
 import com.sparetimedevs.win.model.DomainError
 
-inline fun <reified T : Any> databaseRequest(crossinline block: suspend () -> Result<Error, T>): IO<DomainError, T> =
-    IO.fx<DomainError, T> {
-        continueOn(IO.dispatchers<Nothing>().io())
-        val result = !effect { block() }
-        continueOn(IO.dispatchers<Nothing>().default())
-        when (result) {
-            is Result.Failure -> IO.raiseError<DomainError, T>(result.value.toDomainError()).bind()
-            is Result.Success -> result.value
+suspend inline fun <reified T : Any> databaseRequest(crossinline block: suspend () -> Result<Error, T>): Either<DomainError, T> =
+    Either.catch({ DomainError.UnknownError(it.message ?: "a") }) {
+        evalOn(IOPool) { block() }
+    }.fold(
+        { it.left() },
+        { result ->
+            when (result) {
+                is Result.Failure -> result.value.toDomainError().left()
+                is Result.Success -> result.value.right()
+            }
         }
-    }
+    )

@@ -27,7 +27,7 @@ class DoIt : BehaviorSpec({
     given("I wan't some candidates") {
         `when`("I manually and locally test") {
             then("inserts them in the database") {
-                dataInitializer.initCandidates(candidates).unsafeRunSyncEither()
+                dataInitializer.initCandidates(candidates)
             }
         }
     }

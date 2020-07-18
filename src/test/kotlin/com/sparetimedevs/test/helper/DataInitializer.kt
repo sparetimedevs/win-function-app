@@ -16,29 +16,23 @@
 
 package com.sparetimedevs.test.helper
 
-import arrow.core.extensions.list.traverse.traverse
-import arrow.core.fix
-import arrow.fx.IO
-import arrow.fx.extensions.io.applicative.applicative
-import arrow.fx.fix
-import arrow.fx.followedBy
+import arrow.core.Either
+import arrow.core.extensions.list.apply.followedBy
+import arrow.fx.coroutines.parTraverse
 import com.sparetimedevs.win.model.Candidate
 import com.sparetimedevs.win.model.DomainError
 import com.sparetimedevs.win.repository.CandidateRepository
+import kotlin.coroutines.EmptyCoroutineContext
 
 class DataInitializer(private val candidateRepository: CandidateRepository) {
     
-    fun initCandidates(candidates: List<Candidate>): IO<DomainError, List<Candidate>> {
-        return candidateRepository.deleteAll()
+    suspend fun initCandidates(candidates: List<Candidate>): List<Either<DomainError, Candidate>> =
+        listOf(candidateRepository.deleteAll())
             .followedBy(insert(candidates))
-    }
     
-    private fun insert(candidates: List<Candidate>): IO<DomainError, List<Candidate>> =
-        candidates.traverse(IO.applicative(), ::save).fix()
-            .map {
-                it.fix()
-            }
+    private suspend fun insert(candidates: List<Candidate>): List<Either<DomainError, Candidate>> =
+        candidates.parTraverse(EmptyCoroutineContext, ::save)
     
-    private fun save(candidate: Candidate): IO<DomainError, Candidate> =
+    private suspend fun save(candidate: Candidate): Either<DomainError, Candidate> =
         candidateRepository.save(candidate)
 }
