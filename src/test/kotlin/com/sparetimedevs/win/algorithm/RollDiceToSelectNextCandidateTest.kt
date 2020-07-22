@@ -17,11 +17,12 @@
 package com.sparetimedevs.win.algorithm
 
 import com.sparetimedevs.test.data.candidates
-import io.kotlintest.matchers.collections.shouldBeOneOf
-import io.kotlintest.matchers.shouldBeInRange
-import io.kotlintest.shouldBe
-import io.kotlintest.shouldNotBe
-import io.kotlintest.specs.BehaviorSpec
+import io.kotest.core.spec.style.BehaviorSpec
+import io.kotest.matchers.collections.shouldBeOneOf
+import io.kotest.matchers.ints.shouldBeInRange
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
+
 
 class RollDiceToSelectNextCandidateTest : BehaviorSpec({
     

@@ -16,18 +16,20 @@
 
 package com.sparetimedevs.test.helper
 
-import com.sparetimedevs.test.data.candidates
-import com.sparetimedevs.win.dependencyModule
-import io.kotlintest.specs.BehaviorSpec
+import io.kotest.core.spec.style.BehaviorSpec
 
 class DoIt : BehaviorSpec({
     
-    val dataInitializer = DataInitializer(dependencyModule.candidateRepository)
+    // Don't do it unless you want to.
+    // In that case, uncomment the next line and run the test case.
+    // val dataInitializer = DataInitializer(dependencyModule.candidateRepository)
     
     given("I wan't some candidates") {
         `when`("I manually and locally test") {
             then("inserts them in the database") {
-                dataInitializer.initCandidates(candidates)
+                // Don't do it unless you want to.
+                // In that case, uncomment the next line and run the test case.
+                // dataInitializer.initCandidates(candidates)
             }
         }
     }

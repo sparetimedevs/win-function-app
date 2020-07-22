@@ -21,32 +21,20 @@ import com.microsoft.azure.functions.HttpRequestMessage
 import com.microsoft.azure.functions.HttpResponseMessage
 import com.microsoft.azure.functions.HttpStatus
 import com.sparetimedevs.pofpaf.log.Level
-import com.sparetimedevs.win.model.CandidateViewModel
-import java.text.SimpleDateFormat
 
 @Suppress("UNUSED_PARAMETER")
-suspend fun handleSuccessWithTextPlainHandler(
+suspend fun <A> handleSuccessWithDefaultHandler(
     request: HttpRequestMessage<out Any?>,
     log: suspend (level: Level, message: String) -> Either<Throwable, Unit>,
-    candidates: List<CandidateViewModel>
+    a: A
 ): Either<Throwable, HttpResponseMessage> =
-    Either.catch {
-        val candidateRows = candidates.mapIndexed { index, candidate ->
-            "| ${index + 1} | ${candidate.name} | ${candidate.turns.joinToString { SIMPLE_DATE_FORMAT.format(it) }} | ${SIMPLE_DATE_FORMAT.format(candidate.firstAttendance)} |"
-        }
-        val textPlainBody = TABLE_TOP.plus(candidateRows.joinToString(separator = "\n"))
-        request.createTextPlainResponse(textPlainBody)
-    }
+    Either.catch { request.createResponse(a) }
 
-private fun HttpRequestMessage<out Any?>.createTextPlainResponse(textPlainBody: String): HttpResponseMessage =
+private fun <A> HttpRequestMessage<out Any?>.createResponse(a: A): HttpResponseMessage =
     this.createResponseBuilder(HttpStatus.OK)
-        .header(CONTENT_TYPE, CONTENT_TYPE_TEXT_PLAIN_UTF_8)
-        .body(textPlainBody)
+        .header(
+            CONTENT_TYPE,
+            CONTENT_TYPE_APPLICATION_JSON
+        )
+        .body(a)
         .build()
-
-const val CONTENT_TYPE_TEXT_PLAIN_UTF_8 = "text/plain;charset=UTF-8"
-private const val TABLE_TOP = """| Number in list | Name | Dates | First attendance |
-|--|--|--|--|
-"""
-private const val DATE_FORMAT_PATTERN = "yyyy-MM-dd"
-private val SIMPLE_DATE_FORMAT = SimpleDateFormat(DATE_FORMAT_PATTERN)

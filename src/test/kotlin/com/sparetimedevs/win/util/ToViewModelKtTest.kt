@@ -22,10 +22,10 @@ import arrow.core.right
 import com.sparetimedevs.test.data.candidateTiffany
 import com.sparetimedevs.test.data.candidates
 import com.sparetimedevs.win.model.DomainError
-import io.kotlintest.fail
-import io.kotlintest.matchers.types.shouldBeInstanceOf
-import io.kotlintest.shouldBe
-import io.kotlintest.specs.BehaviorSpec
+import io.kotest.assertions.fail
+import io.kotest.core.spec.style.BehaviorSpec
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coEvery
 import io.mockk.mockkStatic
 

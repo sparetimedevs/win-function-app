@@ -17,16 +17,12 @@
 package com.sparetimedevs.win.trigger.handler
 
 import arrow.core.Either
-import com.microsoft.azure.functions.ExecutionContext
 import com.microsoft.azure.functions.HttpRequestMessage
 import com.microsoft.azure.functions.HttpResponseMessage
 import com.microsoft.azure.functions.HttpStatus
-import com.sparetimedevs.pofpaf.http.CONTENT_TYPE
-import com.sparetimedevs.pofpaf.http.CONTENT_TYPE_APPLICATION_JSON
-import com.sparetimedevs.pofpaf.http.ErrorResponse
-import com.sparetimedevs.pofpaf.log.log
+import com.sparetimedevs.pofpaf.log.Level
 import com.sparetimedevs.win.model.DomainError
-import java.util.logging.Level
+import com.sparetimedevs.win.model.ErrorViewModel
 
 const val TO_VIEW_MODEL_ERROR_MESSAGE = "Something went wrong while transforming the data to view model."
 const val DATE_PARSE_ERROR_MESSAGE = "Something went wrong while parsing the date."
@@ -37,12 +33,11 @@ const val ERROR_MESSAGE_PREFIX = "An error has occurred. The error is:"
 
 suspend fun handleDomainError(
     request: HttpRequestMessage<out Any?>,
-    context: ExecutionContext,
+    log: suspend (level: Level, message: String) -> Either<Throwable, Unit>,
     domainError: DomainError
 ): Either<Throwable, HttpResponseMessage> {
     if (domainError is DomainError.UnknownError) log(
-        context,
-        Level.SEVERE,
+        Level.ERROR,
         "$ERROR_MESSAGE_PREFIX $domainError."
     )
     return createResponse(request, domainError)
@@ -56,31 +51,31 @@ private suspend fun createResponse(
         when (domainError) {
             is DomainError.ToViewModelError -> {
                 request.createResponseBuilder(HttpStatus.CONFLICT)
-                    .body(ErrorResponse(TO_VIEW_MODEL_ERROR_MESSAGE))
+                    .body(ErrorViewModel(TO_VIEW_MODEL_ERROR_MESSAGE))
                     .header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
                     .build()
             }
             is DomainError.DateParseError -> {
                 request.createResponseBuilder(HttpStatus.BAD_REQUEST)
-                    .body(ErrorResponse(DATE_PARSE_ERROR_MESSAGE))
+                    .body(ErrorViewModel(DATE_PARSE_ERROR_MESSAGE))
                     .header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
                     .build()
             }
             is DomainError.EntityNotFound -> {
                 request.createResponseBuilder(HttpStatus.NOT_FOUND)
-                    .body(ErrorResponse(ENTITY_NOT_FOUND_ERROR_MESSAGE))
+                    .body(ErrorViewModel(ENTITY_NOT_FOUND_ERROR_MESSAGE))
                     .header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
                     .build()
             }
             is DomainError.ServiceUnavailable -> {
                 request.createResponseBuilder(HttpStatus.SERVICE_UNAVAILABLE)
-                    .body(ErrorResponse(SERVICE_UNAVAILABLE_ERROR_MESSAGE))
+                    .body(ErrorViewModel(SERVICE_UNAVAILABLE_ERROR_MESSAGE))
                     .header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
                     .build()
             }
             is DomainError.UnknownError -> {
                 request.createResponseBuilder(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ErrorResponse(UNKNOWN_ERROR_MESSAGE))
+                    .body(ErrorViewModel(UNKNOWN_ERROR_MESSAGE))
                     .header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
                     .build()
             }
