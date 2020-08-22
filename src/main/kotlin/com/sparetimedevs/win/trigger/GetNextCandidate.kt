@@ -23,10 +23,13 @@ import com.microsoft.azure.functions.HttpResponseMessage
 import com.microsoft.azure.functions.annotation.AuthorizationLevel
 import com.microsoft.azure.functions.annotation.FunctionName
 import com.microsoft.azure.functions.annotation.HttpTrigger
-import com.sparetimedevs.pofpaf.http.handleHttp
+import com.sparetimedevs.pofpaf.handler.handleBlocking
 import com.sparetimedevs.win.dependencyModule
 import com.sparetimedevs.win.service.CandidateService
 import com.sparetimedevs.win.trigger.handler.handleDomainError
+import com.sparetimedevs.win.trigger.handler.handleSuccessWithDefaultHandler
+import com.sparetimedevs.win.trigger.handler.handleSystemFailureWithDefaultHandler
+import com.sparetimedevs.win.util.log
 import com.sparetimedevs.win.util.toViewModel
 
 class GetNextCandidate(
@@ -44,11 +47,12 @@ class GetNextCandidate(
         request: HttpRequestMessage<String?>,
         context: ExecutionContext
     ): HttpResponseMessage =
-        handleHttp(
-            request = request,
-            context = context,
+        handleBlocking(
             domainLogic = { candidateService.determineNextCandidate().toViewModel() },
-            handleDomainError = ::handleDomainError
+            handleSuccess = { nextCandidate -> handleSuccessWithDefaultHandler(request, { level, message -> log(context, level, message) }, nextCandidate) },
+            handleDomainError = { domainError -> handleDomainError(request, { level, message -> log(context, level, message) }, domainError) },
+            handleSystemFailure = { throwable -> handleSystemFailureWithDefaultHandler(request, { level, message -> log(context, level, message) }, throwable) },
+            log = { level, message -> log(context, level, message) }
         )
     
     companion object {

@@ -27,11 +27,14 @@ import com.microsoft.azure.functions.annotation.AuthorizationLevel
 import com.microsoft.azure.functions.annotation.BindingName
 import com.microsoft.azure.functions.annotation.FunctionName
 import com.microsoft.azure.functions.annotation.HttpTrigger
-import com.sparetimedevs.pofpaf.http.handleHttp
+import com.sparetimedevs.pofpaf.handler.handleBlocking
+import com.sparetimedevs.pofpaf.log.Level
 import com.sparetimedevs.win.dependencyModule
 import com.sparetimedevs.win.model.Name
 import com.sparetimedevs.win.service.CandidateService
 import com.sparetimedevs.win.trigger.handler.handleDomainError
+import com.sparetimedevs.win.trigger.handler.handleSystemFailureWithDefaultHandler
+import com.sparetimedevs.win.util.log
 import com.sparetimedevs.win.util.parseDate
 
 class PutNextCandidate(
@@ -51,17 +54,17 @@ class PutNextCandidate(
         @BindingName(BINDING_NAME_NAME) name: Name,
         @BindingName(BINDING_NAME_DATE) date: String
     ): HttpResponseMessage =
-        handleHttp(
-            request = request,
-            context = context,
+        handleBlocking(
             domainLogic = {
                 date.parseDate()
                     .flatMap {
                         candidateService.addDateToCandidate(name, it)
                     }
             },
-            handleSuccess = ::handleSuccess,
-            handleDomainError = ::handleDomainError
+            handleSuccess = { candidate -> handleSuccess(request, { level, message -> log(context, level, message) }, candidate) },
+            handleDomainError = { domainError -> handleDomainError(request, { level, message -> log(context, level, message) }, domainError) },
+            handleSystemFailure = { throwable -> handleSystemFailureWithDefaultHandler(request, { level, message -> log(context, level, message) }, throwable) },
+            log = { level, message -> log(context, level, message) }
         )
     
     companion object {
@@ -74,5 +77,9 @@ class PutNextCandidate(
 }
 
 @Suppress("UNUSED_PARAMETER")
-private suspend fun <A> handleSuccess(request: HttpRequestMessage<out Any?>, context: ExecutionContext, a: A): Either<Throwable, HttpResponseMessage> =
+private suspend fun <A> handleSuccess(
+    request: HttpRequestMessage<out Any?>,
+    log: suspend (level: Level, message: String) -> Either<Throwable, Unit>,
+    a: A
+): Either<Throwable, HttpResponseMessage> =
     Either.catch { request.createResponseBuilder(HttpStatus.NO_CONTENT).build() }

@@ -19,27 +19,25 @@ package com.sparetimedevs.win.trigger.handler
 import arrow.core.Either
 import com.microsoft.azure.functions.HttpRequestMessage
 import com.microsoft.azure.functions.HttpResponseMessage
+import com.microsoft.azure.functions.HttpStatus
 import com.sparetimedevs.pofpaf.log.Level
-import com.sparetimedevs.win.model.CandidateViewModel
+import com.sparetimedevs.win.model.ErrorViewModel
 
 @Suppress("UNUSED_PARAMETER")
-suspend fun handleSuccessWithDefaultOrTextPlainHandler(
+suspend fun <E> handleDomainErrorWithDefaultHandler(
     request: HttpRequestMessage<out Any?>,
     log: suspend (level: Level, message: String) -> Either<Throwable, Unit>,
-    candidates: List<CandidateViewModel>
+    e: E
 ): Either<Throwable, HttpResponseMessage> =
-    if (isTextPlainPreferred(request.headers)) {
-        handleSuccessWithTextPlainHandler(request, log, candidates)
-    } else {
-        handleSuccessWithDefaultHandler(request, log, candidates)
-    }
+    createResponse(request, e)
 
-private fun isTextPlainPreferred(headers: Map<String, String>): Boolean {
-    val accept = headers.getOrDefault("accept", CONTENT_TYPE_APPLICATION_JSON)
-    return when {
-        accept.contains(CONTENT_TYPE_APPLICATION_JSON) && accept.contains("text/plain") -> true
-        accept.contains(CONTENT_TYPE_APPLICATION_JSON) -> false
-        accept.contains("text/plain") -> true
-        else -> false
+suspend fun <E> createResponse(request: HttpRequestMessage<out Any?>, e: E): Either<Throwable, HttpResponseMessage> =
+    Either.catch {
+        request.createResponseBuilder(HttpStatus.INTERNAL_SERVER_ERROR)
+            .header(
+                CONTENT_TYPE,
+                CONTENT_TYPE_APPLICATION_JSON
+            )
+            .body(ErrorViewModel("$ERROR_MESSAGE_PREFIX $e"))
+            .build()
     }
-}

@@ -16,33 +16,43 @@
 
 package com.sparetimedevs.win.trigger.handler
 
+import arrow.core.Either
 import arrow.core.getOrHandle
-import com.microsoft.azure.functions.ExecutionContext
 import com.microsoft.azure.functions.HttpRequestMessage
 import com.microsoft.azure.functions.HttpStatus
 import com.sparetimedevs.HttpResponseMessageMock
-import com.sparetimedevs.pofpaf.http.CONTENT_TYPE
+import com.sparetimedevs.pofpaf.log.Level
 import com.sparetimedevs.test.data.candidates
+import com.sparetimedevs.test.data.date1
+import com.sparetimedevs.test.data.date2
+import com.sparetimedevs.test.data.date3
+import com.sparetimedevs.test.data.date4
+import com.sparetimedevs.test.data.date5
+import com.sparetimedevs.test.data.date6
+import com.sparetimedevs.test.data.date7
 import com.sparetimedevs.win.model.CandidateViewModel
 import com.sparetimedevs.win.util.toViewModel
-import io.kotlintest.fail
-import io.kotlintest.shouldBe
-import io.kotlintest.specs.BehaviorSpec
+import io.kotest.assertions.fail
+import io.kotest.core.spec.style.BehaviorSpec
+import io.kotest.matchers.shouldBe
+import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
+import java.text.SimpleDateFormat
 
 class TextPlainHandlerKtTest : BehaviorSpec({
     
     given("a list of CandidateViewModels") {
         `when`("handleSuccessWithTextPlainHandler") {
             then("returns HttpResponseMessage with status code OK, content type header text/plain and response body in expected format") {
+                clearAllMocks()
                 val request = mockk<HttpRequestMessage<String?>>()
-                val context = mockk<ExecutionContext>()
+                val log = mockk<suspend (level: Level, message: String) -> Either<Throwable, Unit>>()
                 val candidates: List<CandidateViewModel> = candidates.map { it.toViewModel().getOrHandle { throw Exception("test failed because of setup.") } }
                 
                 every { request.createResponseBuilder(any()) } returns HttpResponseMessageMock.HttpResponseMessageBuilderMock(HttpStatus.OK)
                 
-                val result = handleSuccessWithTextPlainHandler(request, context, candidates)
+                val result = handleSuccessWithTextPlainHandler(request, log, candidates)
                 
                 result.fold(
                     {
@@ -59,29 +69,31 @@ class TextPlainHandlerKtTest : BehaviorSpec({
     }
 }) {
     companion object {
-        private const val EXPECTED_BODY = """| Number in list | Name | Dates | First attendance |
+        private const val DATE_FORMAT_PATTERN = "yyyy-MM-dd"
+        private val SIMPLE_DATE_FORMAT = SimpleDateFormat(DATE_FORMAT_PATTERN)
+        private val EXPECTED_BODY = """| Number in list | Name | Dates | First attendance |
 |--|--|--|--|
-| 1 | Rose | 2020-06-29, 2020-05-08, 2020-03-25 | 2020-02-28 |
-| 2 | Abbie | 2020-06-11 | 2020-02-28 |
-| 3 | Tommy |  | 2020-02-28 |
-| 4 | Joseph | 2020-07-27, 2020-05-28 | 2020-02-28 |
-| 5 | Fani |  | 2020-02-28 |
-| 6 | Eden |  | 2020-02-28 |
-| 7 | Tiffany |  | 2020-02-28 |
-| 8 | Aisha |  | 2020-02-28 |
-| 9 | Elsa |  | 2020-06-11 |
-| 10 | Ellen |  | 2020-02-28 |
-| 11 | Cerys |  | 2020-02-28 |
-| 12 | James |  | 2020-06-29 |
-| 13 | Kevin |  | 2020-02-28 |
-| 14 | William |  | 2020-02-28 |
-| 15 | Elle |  | 2020-02-28 |
-| 16 | Lois |  | 2020-02-28 |
-| 17 | Alexa |  | 2020-02-28 |
-| 18 | Kimberley |  | 2020-02-28 |
-| 19 | Saffron |  | 2020-02-28 |
-| 20 | Penny |  | 2020-02-28 |
-| 21 | George |  | 2020-02-28 |
-| 22 | Margaret |  | 2020-02-28 |"""
+| 1 | Rose | ${SIMPLE_DATE_FORMAT.format(date2)}, ${SIMPLE_DATE_FORMAT.format(date5)}, ${SIMPLE_DATE_FORMAT.format(date6)} | ${SIMPLE_DATE_FORMAT.format(date7)} |
+| 2 | Abbie | ${SIMPLE_DATE_FORMAT.format(date3)} | ${SIMPLE_DATE_FORMAT.format(date7)} |
+| 3 | Tommy |  | ${SIMPLE_DATE_FORMAT.format(date7)} |
+| 4 | Joseph | ${SIMPLE_DATE_FORMAT.format(date1)}, ${SIMPLE_DATE_FORMAT.format(date4)} | ${SIMPLE_DATE_FORMAT.format(date7)} |
+| 5 | Fani |  | ${SIMPLE_DATE_FORMAT.format(date7)} |
+| 6 | Eden |  | ${SIMPLE_DATE_FORMAT.format(date7)} |
+| 7 | Tiffany |  | ${SIMPLE_DATE_FORMAT.format(date7)} |
+| 8 | Aisha |  | ${SIMPLE_DATE_FORMAT.format(date7)} |
+| 9 | Elsa |  | ${SIMPLE_DATE_FORMAT.format(date3)} |
+| 10 | Ellen |  | ${SIMPLE_DATE_FORMAT.format(date7)} |
+| 11 | Cerys |  | ${SIMPLE_DATE_FORMAT.format(date7)} |
+| 12 | James |  | ${SIMPLE_DATE_FORMAT.format(date2)} |
+| 13 | Kevin |  | ${SIMPLE_DATE_FORMAT.format(date7)} |
+| 14 | William |  | ${SIMPLE_DATE_FORMAT.format(date7)} |
+| 15 | Elle |  | ${SIMPLE_DATE_FORMAT.format(date7)} |
+| 16 | Lois |  | ${SIMPLE_DATE_FORMAT.format(date7)} |
+| 17 | Alexa |  | ${SIMPLE_DATE_FORMAT.format(date7)} |
+| 18 | Kimberley |  | ${SIMPLE_DATE_FORMAT.format(date7)} |
+| 19 | Saffron |  | ${SIMPLE_DATE_FORMAT.format(date7)} |
+| 20 | Penny |  | ${SIMPLE_DATE_FORMAT.format(date7)} |
+| 21 | George |  | ${SIMPLE_DATE_FORMAT.format(date7)} |
+| 22 | Margaret |  | ${SIMPLE_DATE_FORMAT.format(date7)} |"""
     }
 }
