@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 sparetimedevs and respective authors and developers.
+ * Copyright (c) 2021 sparetimedevs and respective authors and developers.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,16 +21,15 @@ import arrow.core.flatMap
 import com.microsoft.azure.functions.HttpRequestMessage
 import com.microsoft.azure.functions.HttpResponseMessage
 import com.microsoft.azure.functions.HttpStatus
-import com.sparetimedevs.pofpaf.log.Level
-import com.sparetimedevs.pofpaf.log.THROWABLE_MESSAGE_PREFIX
-import com.sparetimedevs.win.model.ErrorViewModel
+import com.sparetimedevs.win.model.ErrorResponse
+import java.util.logging.Level
 
-suspend fun handleSystemFailureWithDefaultHandler(
+suspend fun handleSystemFailure(
     request: HttpRequestMessage<out Any?>,
     log: suspend (level: Level, message: String) -> Either<Throwable, Unit>,
     throwable: Throwable
 ): Either<Throwable, HttpResponseMessage> =
-    log(Level.ERROR, "$THROWABLE_MESSAGE_PREFIX $throwable. ${throwable.message}")
+    log(Level.SEVERE, "$THROWABLE_MESSAGE_PREFIX $throwable. ${throwable.message}")
         .flatMap {
             createResponse(request, throwable)
         }
@@ -42,6 +41,8 @@ suspend fun createResponse(request: HttpRequestMessage<out Any?>, throwable: Thr
                 CONTENT_TYPE,
                 CONTENT_TYPE_APPLICATION_JSON
             )
-            .body(ErrorViewModel("$THROWABLE_MESSAGE_PREFIX $throwable"))
+            .body(ErrorResponse("$THROWABLE_MESSAGE_PREFIX $throwable"))
             .build()
     }
+
+private const val THROWABLE_MESSAGE_PREFIX = "An exception was thrown. The exception is:"

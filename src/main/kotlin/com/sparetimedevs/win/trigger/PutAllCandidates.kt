@@ -16,27 +16,30 @@
 
 package com.sparetimedevs.win.trigger
 
+import arrow.core.Either
+import arrow.core.extensions.either.applicative.applicative
+import arrow.core.extensions.list.traverse.sequence
+import arrow.core.fix
 import arrow.core.flatMap
 import com.microsoft.azure.functions.ExecutionContext
 import com.microsoft.azure.functions.HttpMethod
 import com.microsoft.azure.functions.HttpRequestMessage
 import com.microsoft.azure.functions.HttpResponseMessage
 import com.microsoft.azure.functions.annotation.AuthorizationLevel
-import com.microsoft.azure.functions.annotation.BindingName
 import com.microsoft.azure.functions.annotation.FunctionName
 import com.microsoft.azure.functions.annotation.HttpTrigger
 import com.sparetimedevs.pofpaf.handler.handleBlocking
 import com.sparetimedevs.win.dependencyModule
-import com.sparetimedevs.win.model.Name
+import com.sparetimedevs.win.model.Candidate
 import com.sparetimedevs.win.service.CandidateService
 import com.sparetimedevs.win.trigger.handler.handleDomainError
 import com.sparetimedevs.win.trigger.handler.handleSuccessWithNoContentHttpResponse
 import com.sparetimedevs.win.trigger.handler.handleSystemFailure
+import com.sparetimedevs.win.trigger.validator.validateAllCandidatesInput
 import com.sparetimedevs.win.util.log
-import com.sparetimedevs.win.util.parseDate
 import java.util.logging.Level
 
-class PutNextCandidate(
+class PutAllCandidates(
     private val candidateService: CandidateService = dependencyModule.candidateService
 ) {
     
@@ -46,18 +49,22 @@ class PutNextCandidate(
             name = TRIGGER_NAME,
             methods = [HttpMethod.PUT],
             route = ROUTE,
-            authLevel = AuthorizationLevel.FUNCTION
+            authLevel = AuthorizationLevel.ADMIN
         )
         request: HttpRequestMessage<String?>,
-        context: ExecutionContext,
-        @BindingName(BINDING_NAME_NAME) name: Name,
-        @BindingName(BINDING_NAME_DATE) date: String
+        context: ExecutionContext
     ): HttpResponseMessage =
         handleBlocking(
             f = {
-                date.parseDate()
-                    .flatMap {
-                        candidateService.addDateToCandidate(name, it)
+                request.validateAllCandidatesInput()
+                    .toEither()
+                    .flatMap { candidates: List<Candidate> ->
+                        candidateService.deleteAll()
+                            .map { candidates }
+                    }
+                    .flatMap { candidates: List<Candidate> ->
+                        candidateService.addAll(candidates)
+                            .sequence(Either.applicative()).fix().map { it.fix() }
                     }
             },
             success = { candidate -> handleSuccessWithNoContentHttpResponse(request, { level, message -> log(context, level, message) }, candidate) },
@@ -67,10 +74,8 @@ class PutNextCandidate(
         )
     
     companion object {
-        private const val FUNCTION_NAME = "PutNextCandidate"
-        private const val TRIGGER_NAME = "putNextCandidate"
-        private const val BINDING_NAME_NAME = "Name"
-        private const val BINDING_NAME_DATE = "Date"
-        private const val ROUTE = "candidates/name/{$BINDING_NAME_NAME}/date/{$BINDING_NAME_DATE}"
+        private const val FUNCTION_NAME = "PutAllCandidates"
+        private const val TRIGGER_NAME = "putAllCandidates"
+        private const val ROUTE = "candidates"
     }
 }

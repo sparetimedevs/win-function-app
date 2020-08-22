@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 sparetimedevs and respective authors and developers.
+ * Copyright (c) 2021 sparetimedevs and respective authors and developers.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,14 @@
 
 package com.sparetimedevs.win.trigger.handler
 
-import arrow.core.Either
 import arrow.core.getOrHandle
 import arrow.core.right
 import com.microsoft.azure.functions.HttpRequestMessage
 import com.microsoft.azure.functions.HttpStatus
 import com.sparetimedevs.HttpResponseMessageMock
-import com.sparetimedevs.pofpaf.log.Level
 import com.sparetimedevs.test.data.candidates
-import com.sparetimedevs.win.model.CandidateViewModel
-import com.sparetimedevs.win.util.toViewModel
+import com.sparetimedevs.win.model.CandidateResponse
+import com.sparetimedevs.win.util.toResponse
 import io.kotest.assertions.fail
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
@@ -39,14 +37,13 @@ class DefaultOrTextPlainHandlerKtTest : BehaviorSpec({
     mockkStatic("com.sparetimedevs.win.trigger.handler.SuccessHandlerKt")
     mockkStatic("com.sparetimedevs.win.trigger.handler.TextPlainHandlerKt")
     val request = mockk<HttpRequestMessage<String?>>()
-    val log = mockk<suspend (level: Level, message: String) -> Either<Throwable, Unit>>()
     
     given("accept header") {
         and("contains application/json") {
             `when`("handleSuccessWithDefaultOrTextPlainHandler") {
                 then("returns all candidates in application/json format") {
-                    val candidatesAsViewModels = candidates.map { it.toViewModel().getOrHandle { throw Exception("test failed because of setup.") } }
-                    val candidatesInBody: String = candidatesAsViewModels.toString()
+                    val candidatesAsResponses = candidates.map { it.toResponse().getOrHandle { throw Exception("test failed because of setup.") } }
+                    val candidatesInBody: String = candidatesAsResponses.toString()
                     val httpResponseMessage =
                         HttpResponseMessageMock.HttpResponseMessageBuilderMock(HttpStatus.OK)
                             .header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
@@ -54,9 +51,9 @@ class DefaultOrTextPlainHandlerKtTest : BehaviorSpec({
                             .build()
                     
                     every { request.headers } returns mapOf("accept" to CONTENT_TYPE_APPLICATION_JSON)
-                    coEvery { handleSuccessWithDefaultHandler(any(), any(), any<List<CandidateViewModel>>()) } returns httpResponseMessage.right()
+                    coEvery { handleSuccessWithDefaultHandler(any(), any<List<CandidateResponse>>()) } returns httpResponseMessage.right()
                     
-                    val result = handleSuccessWithDefaultOrTextPlainHandler(request, log, candidatesAsViewModels)
+                    val result = handleSuccessWithDefaultOrTextPlainHandler(request, candidatesAsResponses)
                     
                     result.fold(
                         {
@@ -75,7 +72,7 @@ class DefaultOrTextPlainHandlerKtTest : BehaviorSpec({
         and("contains text/plain and does not contain application/json") {
             `when`("handleSuccessWithDefaultOrTextPlainHandler") {
                 then("returns all candidates in text/plain format") {
-                    val candidatesAsViewModels = candidates.map { it.toViewModel().getOrHandle { throw Exception("test failed because of setup.") } }
+                    val candidatesAsResponses = candidates.map { it.toResponse().getOrHandle { throw Exception("test failed because of setup.") } }
                     val httpResponseMessage =
                         HttpResponseMessageMock.HttpResponseMessageBuilderMock(HttpStatus.OK)
                             .header(CONTENT_TYPE, CONTENT_TYPE_TEXT_PLAIN_UTF_8)
@@ -83,9 +80,9 @@ class DefaultOrTextPlainHandlerKtTest : BehaviorSpec({
                             .build()
                     
                     every { request.headers } returns mapOf("accept" to CONTENT_TYPE_TEXT_PLAIN_UTF_8)
-                    coEvery { handleSuccessWithTextPlainHandler(any(), any(), any()) } returns httpResponseMessage.right()
+                    coEvery { handleSuccessWithTextPlainHandler(any(), any()) } returns httpResponseMessage.right()
                     
-                    val result = handleSuccessWithDefaultOrTextPlainHandler(request, log, candidatesAsViewModels)
+                    val result = handleSuccessWithDefaultOrTextPlainHandler(request, candidatesAsResponses)
                     
                     result.fold(
                         {
@@ -104,8 +101,8 @@ class DefaultOrTextPlainHandlerKtTest : BehaviorSpec({
         and("contains no application/json and no text/plain") {
             `when`("handleSuccessWithDefaultOrTextPlainHandler") {
                 then("returns all candidates in application/json format") {
-                    val candidatesAsViewModels = candidates.map { it.toViewModel().getOrHandle { throw Exception("test failed because of setup.") } }
-                    val candidatesInBody: String = candidatesAsViewModels.toString()
+                    val candidatesAsResponses = candidates.map { it.toResponse().getOrHandle { throw Exception("test failed because of setup.") } }
+                    val candidatesInBody: String = candidatesAsResponses.toString()
                     val httpResponseMessage =
                         HttpResponseMessageMock.HttpResponseMessageBuilderMock(HttpStatus.OK)
                             .header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
@@ -113,9 +110,9 @@ class DefaultOrTextPlainHandlerKtTest : BehaviorSpec({
                             .build()
                     
                     every { request.headers } returns mapOf("accept" to "something/else")
-                    coEvery { handleSuccessWithDefaultHandler(any(), any(), any<List<CandidateViewModel>>()) } returns httpResponseMessage.right()
+                    coEvery { handleSuccessWithDefaultHandler(any(), any<List<CandidateResponse>>()) } returns httpResponseMessage.right()
                     
-                    val result = handleSuccessWithDefaultOrTextPlainHandler(request, log, candidatesAsViewModels)
+                    val result = handleSuccessWithDefaultOrTextPlainHandler(request, candidatesAsResponses)
                     
                     result.fold(
                         {
@@ -134,8 +131,8 @@ class DefaultOrTextPlainHandlerKtTest : BehaviorSpec({
         and("contains both application/json and text/plain") {
             `when`("handleSuccessWithDefaultOrTextPlainHandler") {
                 then("returns all candidates in application/json format") {
-                    val candidatesAsViewModels = candidates.map { it.toViewModel().getOrHandle { throw Exception("test failed because of setup.") } }
-                    val candidatesInBody: String = candidatesAsViewModels.toString()
+                    val candidatesAsResponses = candidates.map { it.toResponse().getOrHandle { throw Exception("test failed because of setup.") } }
+                    val candidatesInBody: String = candidatesAsResponses.toString()
                     val httpResponseMessage =
                         HttpResponseMessageMock.HttpResponseMessageBuilderMock(HttpStatus.OK)
                             .header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
@@ -143,9 +140,9 @@ class DefaultOrTextPlainHandlerKtTest : BehaviorSpec({
                             .build()
                     
                     every { request.headers } returns mapOf("accept" to "$CONTENT_TYPE_TEXT_PLAIN_UTF_8;$CONTENT_TYPE_APPLICATION_JSON")
-                    coEvery { handleSuccessWithTextPlainHandler(any(), any(), any()) } returns httpResponseMessage.right()
+                    coEvery { handleSuccessWithTextPlainHandler(any(), any()) } returns httpResponseMessage.right()
                     
-                    val result = handleSuccessWithDefaultOrTextPlainHandler(request, log, candidatesAsViewModels)
+                    val result = handleSuccessWithDefaultOrTextPlainHandler(request, candidatesAsResponses)
                     
                     result.fold(
                         {
@@ -165,8 +162,8 @@ class DefaultOrTextPlainHandlerKtTest : BehaviorSpec({
     given("no accept header") {
         `when`("handleSuccessWithDefaultOrTextPlainHandler") {
             then("returns all candidates in application/json format") {
-                val candidatesAsViewModels = candidates.map { it.toViewModel().getOrHandle { throw Exception("test failed because of setup.") } }
-                val candidatesInBody: String = candidatesAsViewModels.toString()
+                val candidatesAsResponses = candidates.map { it.toResponse().getOrHandle { throw Exception("test failed because of setup.") } }
+                val candidatesInBody: String = candidatesAsResponses.toString()
                 val httpResponseMessage =
                     HttpResponseMessageMock.HttpResponseMessageBuilderMock(HttpStatus.OK)
                         .header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
@@ -174,9 +171,9 @@ class DefaultOrTextPlainHandlerKtTest : BehaviorSpec({
                         .build()
                 
                 every { request.headers } returns emptyMap()
-                coEvery { handleSuccessWithDefaultHandler(any(), any(), any<List<CandidateViewModel>>()) } returns httpResponseMessage.right()
+                coEvery { handleSuccessWithDefaultHandler(any(), any<List<CandidateResponse>>()) } returns httpResponseMessage.right()
                 
-                val result = handleSuccessWithDefaultOrTextPlainHandler(request, log, candidatesAsViewModels)
+                val result = handleSuccessWithDefaultOrTextPlainHandler(request, candidatesAsResponses)
                 result.fold(
                     {
                         fail("Test case should yield a Right.")

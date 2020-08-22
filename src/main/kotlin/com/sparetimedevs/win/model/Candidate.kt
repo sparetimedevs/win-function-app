@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 sparetimedevs and respective authors and developers.
+ * Copyright (c) 2021 sparetimedevs and respective authors and developers.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,23 @@
  * limitations under the License.
  */
 
+@file:JvmName("UniqueCandidateFileName")
+
 package com.sparetimedevs.win.model
 
 import arrow.optics.extensions.list.cons.cons
 import arrow.optics.optics
-import org.bson.codecs.pojo.annotations.BsonCreator
-import org.bson.codecs.pojo.annotations.BsonId
-import org.bson.codecs.pojo.annotations.BsonProperty
+import com.sparetimedevs.win.util.fromDatabaseDateFormat
 import org.bson.types.ObjectId
-import java.util.Date
+import java.time.OffsetDateTime
 
 typealias Name = String
 
 @optics
-data class Candidate @BsonCreator constructor(
-    @BsonId val id: ObjectId = ObjectId(),
-    @BsonProperty("name") val name: Name,
-    @BsonProperty("firstAttendanceAndTurns") val firstAttendanceAndTurns: List<Date>
+data class Candidate(
+    val id: ObjectId = ObjectId(),
+    val name: Name,
+    val firstAttendanceAndTurns: List<OffsetDateTime>
 ) {
     companion object
 }
@@ -39,5 +39,8 @@ private val candidateFirstAttendanceAndTurns = Candidate.firstAttendanceAndTurns
 
 private fun getCandidateFirstAttendanceAndTurns(candidate: Candidate) = candidateFirstAttendanceAndTurns.get(candidate)
 
-fun Candidate.addTurn(date: Date) =
+fun Candidate.addTurn(date: OffsetDateTime): Candidate =
     candidateFirstAttendanceAndTurns.modify(this) { date.cons(getCandidateFirstAttendanceAndTurns(this)) }
+
+fun CandidateEntity.toCandidate(): Candidate =
+    Candidate(id = id, name = name, firstAttendanceAndTurns = firstAttendanceAndTurns.map { it.fromDatabaseDateFormat() })

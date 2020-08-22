@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 sparetimedevs and respective authors and developers.
+ * Copyright (c) 2021 sparetimedevs and respective authors and developers.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,18 +21,22 @@ import io.kotest.assertions.fail
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
+import java.time.Instant
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
+import java.util.Date
 
-class DateParserKtTest : BehaviorSpec({
+class DateTimeKtTest : BehaviorSpec({
     
     given("parse date is called") {
         `when`("operating on a valid date string") {
             then("returns correct date object") {
-                "20190831".parseDate().fold(
+                "2019-08-31".parseDate().fold(
                     {
                         fail("This test case should yield a Right.")
                     },
                     {
-                        it.toInstant().epochSecond shouldBe 1567202400L
+                        it.toInstant().epochSecond shouldBe 1567252800L
                     }
                 )
             }
@@ -51,4 +55,40 @@ class DateParserKtTest : BehaviorSpec({
             }
         }
     }
-})
+    
+    given("toDateFormattedString is called") {
+        `when`("operating on a OffsetDateTime") {
+            then("returns correct formatted date string") {
+                val result = OFFSET_DATE_TIME.toDateFormattedString()
+                
+                result shouldBe "2021-01-31"
+            }
+        }
+    }
+    
+    given("toDatabaseDateFormat is called") {
+        `when`("operating on a OffsetDateTime") {
+            then("returns correct Date") {
+                val result = OFFSET_DATE_TIME.toDatabaseDateFormat()
+                
+                result shouldBe Date(EPOCH_SECOND * 1000)
+            }
+        }
+    }
+    
+    given("fromDatabaseDateFormat is called") {
+        `when`("operating on a OffsetDateTime") {
+            then("returns correct OffsetDateTime") {
+                val result = Date(EPOCH_SECOND * 1000).fromDatabaseDateFormat()
+                
+                result shouldBe OFFSET_DATE_TIME
+            }
+        }
+    }
+}) {
+    companion object {
+        private const val EPOCH_SECOND = 1612106767L
+        private val OFFSET_DATE_TIME: OffsetDateTime = Instant.ofEpochSecond(EPOCH_SECOND).atOffset(ZoneOffset.UTC)
+        
+    }
+}

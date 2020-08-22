@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 sparetimedevs and respective authors and developers.
+ * Copyright (c) 2021 sparetimedevs and respective authors and developers.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,8 @@
 
 package com.sparetimedevs.win.model
 
-import com.sparetimedevs.win.algorithm.DetailsOfAlgorithm
-
-data class NextCandidateViewModel(
-    val candidateName: Name,
-    val detailsOfAlgorithm: DetailsOfAlgorithm
+data class CandidateResponse(
+    val name: String,
+    val firstAttendance: String,
+    val turns: List<String>
 )

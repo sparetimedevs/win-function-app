@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 sparetimedevs and respective authors and developers.
+ * Copyright (c) 2021 sparetimedevs and respective authors and developers.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,10 @@
 
 package com.sparetimedevs.win.trigger.handler
 
-import arrow.core.Either
 import arrow.core.getOrHandle
 import com.microsoft.azure.functions.HttpRequestMessage
 import com.microsoft.azure.functions.HttpStatus
 import com.sparetimedevs.HttpResponseMessageMock
-import com.sparetimedevs.pofpaf.log.Level
 import com.sparetimedevs.test.data.candidates
 import com.sparetimedevs.test.data.date1
 import com.sparetimedevs.test.data.date2
@@ -30,29 +28,30 @@ import com.sparetimedevs.test.data.date4
 import com.sparetimedevs.test.data.date5
 import com.sparetimedevs.test.data.date6
 import com.sparetimedevs.test.data.date7
-import com.sparetimedevs.win.model.CandidateViewModel
-import com.sparetimedevs.win.util.toViewModel
+import com.sparetimedevs.win.model.CandidateResponse
+import com.sparetimedevs.win.util.toResponse
 import io.kotest.assertions.fail
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
-import java.text.SimpleDateFormat
+import java.time.ZoneId
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 
 class TextPlainHandlerKtTest : BehaviorSpec({
     
-    given("a list of CandidateViewModels") {
+    given("a list of CandidateResponse") {
         `when`("handleSuccessWithTextPlainHandler") {
             then("returns HttpResponseMessage with status code OK, content type header text/plain and response body in expected format") {
                 clearAllMocks()
                 val request = mockk<HttpRequestMessage<String?>>()
-                val log = mockk<suspend (level: Level, message: String) -> Either<Throwable, Unit>>()
-                val candidates: List<CandidateViewModel> = candidates.map { it.toViewModel().getOrHandle { throw Exception("test failed because of setup.") } }
+                val candidates: List<CandidateResponse> = candidates.map { it.toResponse().getOrHandle { throw Exception("test failed because of setup.") } }
                 
                 every { request.createResponseBuilder(any()) } returns HttpResponseMessageMock.HttpResponseMessageBuilderMock(HttpStatus.OK)
                 
-                val result = handleSuccessWithTextPlainHandler(request, log, candidates)
+                val result = handleSuccessWithTextPlainHandler(request, candidates)
                 
                 result.fold(
                     {
@@ -70,30 +69,30 @@ class TextPlainHandlerKtTest : BehaviorSpec({
 }) {
     companion object {
         private const val DATE_FORMAT_PATTERN = "yyyy-MM-dd"
-        private val SIMPLE_DATE_FORMAT = SimpleDateFormat(DATE_FORMAT_PATTERN)
+        private val DATE_TIME_FORMATTER: DateTimeFormatter = DateTimeFormatter.ofPattern(DATE_FORMAT_PATTERN).withZone(ZoneId.from(ZoneOffset.UTC))
         private val EXPECTED_BODY = """| Number in list | Name | Dates | First attendance |
 |--|--|--|--|
-| 1 | Rose | ${SIMPLE_DATE_FORMAT.format(date2)}, ${SIMPLE_DATE_FORMAT.format(date5)}, ${SIMPLE_DATE_FORMAT.format(date6)} | ${SIMPLE_DATE_FORMAT.format(date7)} |
-| 2 | Abbie | ${SIMPLE_DATE_FORMAT.format(date3)} | ${SIMPLE_DATE_FORMAT.format(date7)} |
-| 3 | Tommy |  | ${SIMPLE_DATE_FORMAT.format(date7)} |
-| 4 | Joseph | ${SIMPLE_DATE_FORMAT.format(date1)}, ${SIMPLE_DATE_FORMAT.format(date4)} | ${SIMPLE_DATE_FORMAT.format(date7)} |
-| 5 | Fani |  | ${SIMPLE_DATE_FORMAT.format(date7)} |
-| 6 | Eden |  | ${SIMPLE_DATE_FORMAT.format(date7)} |
-| 7 | Tiffany |  | ${SIMPLE_DATE_FORMAT.format(date7)} |
-| 8 | Aisha |  | ${SIMPLE_DATE_FORMAT.format(date7)} |
-| 9 | Elsa |  | ${SIMPLE_DATE_FORMAT.format(date3)} |
-| 10 | Ellen |  | ${SIMPLE_DATE_FORMAT.format(date7)} |
-| 11 | Cerys |  | ${SIMPLE_DATE_FORMAT.format(date7)} |
-| 12 | James |  | ${SIMPLE_DATE_FORMAT.format(date2)} |
-| 13 | Kevin |  | ${SIMPLE_DATE_FORMAT.format(date7)} |
-| 14 | William |  | ${SIMPLE_DATE_FORMAT.format(date7)} |
-| 15 | Elle |  | ${SIMPLE_DATE_FORMAT.format(date7)} |
-| 16 | Lois |  | ${SIMPLE_DATE_FORMAT.format(date7)} |
-| 17 | Alexa |  | ${SIMPLE_DATE_FORMAT.format(date7)} |
-| 18 | Kimberley |  | ${SIMPLE_DATE_FORMAT.format(date7)} |
-| 19 | Saffron |  | ${SIMPLE_DATE_FORMAT.format(date7)} |
-| 20 | Penny |  | ${SIMPLE_DATE_FORMAT.format(date7)} |
-| 21 | George |  | ${SIMPLE_DATE_FORMAT.format(date7)} |
-| 22 | Margaret |  | ${SIMPLE_DATE_FORMAT.format(date7)} |"""
+| 1 | Rose | ${DATE_TIME_FORMATTER.format(date2)}, ${DATE_TIME_FORMATTER.format(date5)}, ${DATE_TIME_FORMATTER.format(date6)} | ${DATE_TIME_FORMATTER.format(date7)} |
+| 2 | Abbie | ${DATE_TIME_FORMATTER.format(date3)} | ${DATE_TIME_FORMATTER.format(date7)} |
+| 3 | Tommy |  | ${DATE_TIME_FORMATTER.format(date7)} |
+| 4 | Joseph | ${DATE_TIME_FORMATTER.format(date1)}, ${DATE_TIME_FORMATTER.format(date4)} | ${DATE_TIME_FORMATTER.format(date7)} |
+| 5 | Fani |  | ${DATE_TIME_FORMATTER.format(date7)} |
+| 6 | Eden |  | ${DATE_TIME_FORMATTER.format(date7)} |
+| 7 | Tiffany |  | ${DATE_TIME_FORMATTER.format(date7)} |
+| 8 | Aisha |  | ${DATE_TIME_FORMATTER.format(date7)} |
+| 9 | Elsa |  | ${DATE_TIME_FORMATTER.format(date3)} |
+| 10 | Ellen |  | ${DATE_TIME_FORMATTER.format(date7)} |
+| 11 | Cerys |  | ${DATE_TIME_FORMATTER.format(date7)} |
+| 12 | James |  | ${DATE_TIME_FORMATTER.format(date2)} |
+| 13 | Kevin |  | ${DATE_TIME_FORMATTER.format(date7)} |
+| 14 | William |  | ${DATE_TIME_FORMATTER.format(date7)} |
+| 15 | Elle |  | ${DATE_TIME_FORMATTER.format(date7)} |
+| 16 | Lois |  | ${DATE_TIME_FORMATTER.format(date7)} |
+| 17 | Alexa |  | ${DATE_TIME_FORMATTER.format(date7)} |
+| 18 | Kimberley |  | ${DATE_TIME_FORMATTER.format(date7)} |
+| 19 | Saffron |  | ${DATE_TIME_FORMATTER.format(date7)} |
+| 20 | Penny |  | ${DATE_TIME_FORMATTER.format(date7)} |
+| 21 | George |  | ${DATE_TIME_FORMATTER.format(date7)} |
+| 22 | Margaret |  | ${DATE_TIME_FORMATTER.format(date7)} |"""
     }
 }

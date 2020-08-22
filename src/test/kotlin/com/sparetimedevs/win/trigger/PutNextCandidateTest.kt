@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 sparetimedevs and respective authors and developers.
+ * Copyright (c) 2021 sparetimedevs and respective authors and developers.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,11 +23,10 @@ import com.microsoft.azure.functions.HttpResponseMessage
 import com.microsoft.azure.functions.HttpStatus
 import com.sparetimedevs.HttpResponseMessageMock
 import com.sparetimedevs.pofpaf.handler.handleBlocking
-import com.sparetimedevs.pofpaf.log.Level
 import com.sparetimedevs.test.data.candidateLois
 import com.sparetimedevs.win.model.Candidate
 import com.sparetimedevs.win.model.DomainError
-import com.sparetimedevs.win.model.ErrorViewModel
+import com.sparetimedevs.win.model.ErrorResponse
 import com.sparetimedevs.win.service.CandidateService
 import com.sparetimedevs.win.trigger.handler.CONTENT_TYPE
 import com.sparetimedevs.win.trigger.handler.CONTENT_TYPE_APPLICATION_JSON
@@ -39,7 +38,6 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
-import kotlin.coroutines.CoroutineContext
 
 class PutNextCandidateTest : BehaviorSpec({
     
@@ -66,13 +64,12 @@ class PutNextCandidateTest : BehaviorSpec({
                 
                 every {
                     handleBlocking(
-                        ctx = any<CoroutineContext>(),
-                        domainLogic = any<suspend () -> Either<DomainError, Candidate>>(),
-                        handleSuccess = any<suspend (Candidate: Candidate) -> Either<Throwable, HttpResponseMessage>>(),
-                        handleDomainError = any<suspend (domainError: DomainError) -> Either<Throwable, HttpResponseMessage>>(),
-                        handleSystemFailure = any<suspend (throwable: Throwable) -> Either<Throwable, HttpResponseMessage>>(),
-                        handleHandlerFailure = any<suspend (throwable: Throwable) -> Either<Throwable, HttpResponseMessage>>(),
-                        log = any<suspend (level: Level, message: String) -> Either<Throwable, Unit>>()
+                        ctx = any(),
+                        f = any<suspend () -> Either<DomainError, Candidate>>(),
+                        success = any<suspend (Candidate: Candidate) -> Either<Throwable, HttpResponseMessage>>(),
+                        error = any(),
+                        throwable = any(),
+                        unrecoverableState = any()
                     )
                 } returns httpResponseMessage
                 
@@ -86,7 +83,7 @@ class PutNextCandidateTest : BehaviorSpec({
             then("returns error message") {
                 val nameInput = candidateLois.name
                 val dateInput = "20190831"
-                val errorInBody: String = ErrorViewModel(SERVICE_UNAVAILABLE_ERROR_MESSAGE).toString()
+                val errorInBody: String = ErrorResponse(SERVICE_UNAVAILABLE_ERROR_MESSAGE).toString()
                 val httpResponseMessage =
                     HttpResponseMessageMock.HttpResponseMessageBuilderMock(HttpStatus.INTERNAL_SERVER_ERROR)
                         .body(errorInBody)
@@ -95,13 +92,12 @@ class PutNextCandidateTest : BehaviorSpec({
                 
                 every {
                     handleBlocking(
-                        ctx = any<CoroutineContext>(),
-                        domainLogic = any<suspend () -> Either<DomainError, Candidate>>(),
-                        handleSuccess = any<suspend (Candidate: Candidate) -> Either<Throwable, HttpResponseMessage>>(),
-                        handleDomainError = any<suspend (domainError: DomainError) -> Either<Throwable, HttpResponseMessage>>(),
-                        handleSystemFailure = any<suspend (throwable: Throwable) -> Either<Throwable, HttpResponseMessage>>(),
-                        handleHandlerFailure = any<suspend (throwable: Throwable) -> Either<Throwable, HttpResponseMessage>>(),
-                        log = any<suspend (level: Level, message: String) -> Either<Throwable, Unit>>()
+                        ctx = any(),
+                        f = any<suspend () -> Either<DomainError, Candidate>>(),
+                        success = any<suspend (Candidate: Candidate) -> Either<Throwable, HttpResponseMessage>>(),
+                        error = any(),
+                        throwable = any(),
+                        unrecoverableState = any()
                     )
                 } returns httpResponseMessage
                 
@@ -117,7 +113,7 @@ class PutNextCandidateTest : BehaviorSpec({
             then("returns error message") {
                 val nameInput = candidateLois.name
                 val dateInput = "20190831"
-                val errorInBody: String = ErrorViewModel(DATE_PARSE_ERROR_MESSAGE).toString()
+                val errorInBody: String = ErrorResponse(DATE_PARSE_ERROR_MESSAGE).toString()
                 val httpResponseMessage =
                     HttpResponseMessageMock.HttpResponseMessageBuilderMock(HttpStatus.BAD_REQUEST)
                         .body(errorInBody)
@@ -126,13 +122,12 @@ class PutNextCandidateTest : BehaviorSpec({
                 
                 every {
                     handleBlocking(
-                        ctx = any<CoroutineContext>(),
-                        domainLogic = any<suspend () -> Either<DomainError, Candidate>>(),
-                        handleSuccess = any<suspend (Candidate: Candidate) -> Either<Throwable, HttpResponseMessage>>(),
-                        handleDomainError = any<suspend (domainError: DomainError) -> Either<Throwable, HttpResponseMessage>>(),
-                        handleSystemFailure = any<suspend (throwable: Throwable) -> Either<Throwable, HttpResponseMessage>>(),
-                        handleHandlerFailure = any<suspend (throwable: Throwable) -> Either<Throwable, HttpResponseMessage>>(),
-                        log = any<suspend (level: Level, message: String) -> Either<Throwable, Unit>>()
+                        ctx = any(),
+                        f = any<suspend () -> Either<DomainError, Candidate>>(),
+                        success = any<suspend (Candidate: Candidate) -> Either<Throwable, HttpResponseMessage>>(),
+                        error = any(),
+                        throwable = any(),
+                        unrecoverableState = any()
                     )
                 } returns httpResponseMessage
                 

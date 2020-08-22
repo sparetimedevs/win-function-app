@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 sparetimedevs and respective authors and developers.
+ * Copyright (c) 2021 sparetimedevs and respective authors and developers.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,9 @@
 package com.sparetimedevs.win.service
 
 import arrow.core.Either
+import arrow.core.extensions.either.functor.unit
 import arrow.core.flatMap
+import arrow.fx.coroutines.parTraverse
 import com.sparetimedevs.win.algorithm.CandidateAlgorithm
 import com.sparetimedevs.win.algorithm.DetailsOfAlgorithm
 import com.sparetimedevs.win.model.Candidate
@@ -25,7 +27,8 @@ import com.sparetimedevs.win.model.DomainError
 import com.sparetimedevs.win.model.addTurn
 import com.sparetimedevs.win.repository.CandidateRepository
 import com.sparetimedevs.win.trigger.defaultSorting
-import java.util.Date
+import java.time.OffsetDateTime
+import kotlin.coroutines.EmptyCoroutineContext
 
 class CandidateService(
     private val candidateAlgorithm: CandidateAlgorithm,
@@ -41,9 +44,15 @@ class CandidateService(
                 candidateAlgorithm.nextCandidate(it)
             }
     
-    suspend fun addDateToCandidate(name: String, date: Date): Either<DomainError, Candidate> =
+    suspend fun addDateToCandidate(name: String, date: OffsetDateTime): Either<DomainError, Candidate> =
         candidateRepository.findOneByName(name)
             .flatMap {
                 candidateRepository.update(it.id, it.addTurn(date))
             }
+    
+    suspend fun addAll(candidates: List<Candidate>): List<Either<DomainError, Candidate>> =
+        candidates.parTraverse(EmptyCoroutineContext, candidateRepository::save)
+    
+    suspend fun deleteAll(): Either<DomainError, Unit> =
+        candidateRepository.deleteAll().unit()
 }

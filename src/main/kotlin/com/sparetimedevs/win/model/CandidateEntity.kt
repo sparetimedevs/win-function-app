@@ -16,18 +16,20 @@
 
 package com.sparetimedevs.win.model
 
-import io.kotest.core.spec.style.BehaviorSpec
-import io.kotest.matchers.ints.shouldBeInRange
+import com.sparetimedevs.win.util.toDatabaseDateFormat
+import org.bson.codecs.pojo.annotations.BsonCreator
+import org.bson.codecs.pojo.annotations.BsonId
+import org.bson.codecs.pojo.annotations.BsonProperty
+import org.bson.types.ObjectId
+import java.util.Date
 
-class DieTest : BehaviorSpec({
-    
-    given("a D6") {
-        `when`("roll") {
-            then("returns a number in range of one to six") {
-                repeat(300) {
-                    D6.roll() shouldBeInRange IntRange(1, 6)
-                }
-            }
-        }
-    }
-})
+data class CandidateEntity @BsonCreator constructor(
+    @BsonId val id: ObjectId = ObjectId(),
+    @BsonProperty("name") val name: Name,
+    @BsonProperty("firstAttendanceAndTurns") val firstAttendanceAndTurns: List<Date>
+) {
+    companion object
+}
+
+fun Candidate.toCandidateEntity() =
+    CandidateEntity(id = id, name = name, firstAttendanceAndTurns = firstAttendanceAndTurns.map { it.toDatabaseDateFormat() })

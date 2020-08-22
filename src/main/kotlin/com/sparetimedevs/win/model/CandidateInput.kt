@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 sparetimedevs and respective authors and developers.
+ * Copyright (c) 2021 sparetimedevs and respective authors and developers.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,8 @@
 
 package com.sparetimedevs.win.model
 
-import java.util.Date
-
-data class CandidateViewModel(
-    val name: Name,
-    val firstAttendance: Date,
-    val turns: List<Date>
+data class CandidateInput(
+    val name: String?,
+    val firstAttendance: String?,
+    val turns: List<String>?
 )

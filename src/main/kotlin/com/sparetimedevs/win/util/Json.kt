@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 sparetimedevs and respective authors and developers.
+ * Copyright (c) 2021 sparetimedevs and respective authors and developers.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,18 +17,25 @@
 package com.sparetimedevs.win.util
 
 import arrow.core.Either
+import arrow.core.Validated
+import arrow.core.invalid
+import arrow.core.valid
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
+import com.google.gson.reflect.TypeToken
 import com.sparetimedevs.win.model.DomainError
-import com.sparetimedevs.win.model.DomainError.DateParseError
-import java.text.DateFormat
-import java.text.SimpleDateFormat
-import java.util.Date
 
-private const val DATE_FORMAT = "yyyyMMdd"
-private val dateFormat: DateFormat = SimpleDateFormat(DATE_FORMAT)
+private val gson: Gson = GsonBuilder().create()
 
-suspend fun String.parseDate(): Either<DomainError, Date> =
-    Either.catch({ throwable: Throwable ->
-        throwable.message?.let { DateParseError(it) } ?: DateParseError()
-    }) {
-        dateFormat.parse(this)
+suspend fun <T> TypeToken<T>.fromJson(string: String?): Validated<DomainError.JsonError, T> =
+    Either.catch<T> {
+        gson.fromJson(string, this.type)
     }
+        .fold(
+            {
+                DomainError.JsonError(it.message ?: "An exception was thrown while parsing JSON.").invalid()
+            },
+            {
+                it.valid()
+            }
+        )

@@ -16,18 +16,9 @@
 
 package com.sparetimedevs.win.model
 
-import io.kotest.core.spec.style.BehaviorSpec
-import io.kotest.matchers.ints.shouldBeInRange
+import com.sparetimedevs.win.algorithm.DetailsOfAlgorithm
 
-class DieTest : BehaviorSpec({
-    
-    given("a D6") {
-        `when`("roll") {
-            then("returns a number in range of one to six") {
-                repeat(300) {
-                    D6.roll() shouldBeInRange IntRange(1, 6)
-                }
-            }
-        }
-    }
-})
+data class NextCandidateResponse(
+    val candidateName: Name,
+    val detailsOfAlgorithm: DetailsOfAlgorithm
+)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 sparetimedevs and respective authors and developers.
+ * Copyright (c) 2021 sparetimedevs and respective authors and developers.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,19 +20,15 @@ import arrow.core.Either
 import com.microsoft.azure.functions.HttpRequestMessage
 import com.microsoft.azure.functions.HttpResponseMessage
 import com.microsoft.azure.functions.HttpStatus
-import com.sparetimedevs.pofpaf.log.Level
-import com.sparetimedevs.win.model.CandidateViewModel
-import java.text.SimpleDateFormat
+import com.sparetimedevs.win.model.CandidateResponse
 
-@Suppress("UNUSED_PARAMETER")
 suspend fun handleSuccessWithTextPlainHandler(
     request: HttpRequestMessage<out Any?>,
-    log: suspend (level: Level, message: String) -> Either<Throwable, Unit>,
-    candidates: List<CandidateViewModel>
+    candidates: List<CandidateResponse>
 ): Either<Throwable, HttpResponseMessage> =
     Either.catch {
         val candidateRows = candidates.mapIndexed { index, candidate ->
-            "| ${index + 1} | ${candidate.name} | ${candidate.turns.joinToString { SIMPLE_DATE_FORMAT.format(it) }} | ${SIMPLE_DATE_FORMAT.format(candidate.firstAttendance)} |"
+            "| ${index + 1} | ${candidate.name} | ${candidate.turns.joinToString { it }} | ${candidate.firstAttendance} |"
         }
         val textPlainBody = TABLE_TOP.plus(candidateRows.joinToString(separator = "\n"))
         request.createTextPlainResponse(textPlainBody)
@@ -48,5 +44,3 @@ const val CONTENT_TYPE_TEXT_PLAIN_UTF_8 = "text/plain;charset=UTF-8"
 private const val TABLE_TOP = """| Number in list | Name | Dates | First attendance |
 |--|--|--|--|
 """
-private const val DATE_FORMAT_PATTERN = "yyyy-MM-dd"
-private val SIMPLE_DATE_FORMAT = SimpleDateFormat(DATE_FORMAT_PATTERN)

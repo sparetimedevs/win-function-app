@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 sparetimedevs and respective authors and developers.
+ * Copyright (c) 2021 sparetimedevs and respective authors and developers.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,19 +19,16 @@ package com.sparetimedevs.win.trigger.handler
 import arrow.core.Either
 import com.microsoft.azure.functions.HttpRequestMessage
 import com.microsoft.azure.functions.HttpResponseMessage
-import com.sparetimedevs.pofpaf.log.Level
-import com.sparetimedevs.win.model.CandidateViewModel
+import com.sparetimedevs.win.model.CandidateResponse
 
-@Suppress("UNUSED_PARAMETER")
 suspend fun handleSuccessWithDefaultOrTextPlainHandler(
     request: HttpRequestMessage<out Any?>,
-    log: suspend (level: Level, message: String) -> Either<Throwable, Unit>,
-    candidates: List<CandidateViewModel>
+    candidates: List<CandidateResponse>
 ): Either<Throwable, HttpResponseMessage> =
     if (isTextPlainPreferred(request.headers)) {
-        handleSuccessWithTextPlainHandler(request, log, candidates)
+        handleSuccessWithTextPlainHandler(request, candidates)
     } else {
-        handleSuccessWithDefaultHandler(request, log, candidates)
+        handleSuccessWithDefaultHandler(request, candidates)
     }
 
 private fun isTextPlainPreferred(headers: Map<String, String>): Boolean {
