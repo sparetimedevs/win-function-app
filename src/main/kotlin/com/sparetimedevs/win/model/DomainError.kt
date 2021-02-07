@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 sparetimedevs and respective authors and developers.
+ * Copyright (c) 2021 sparetimedevs and respective authors and developers.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,13 @@ package com.sparetimedevs.win.model
 
 sealed class DomainError(open val message: String) {
     
-    data class ToViewModelError(override val message: String = "An exception was thrown while converting to view model.") : DomainError(message)
+    data class ToResponseError(override val message: String = "An exception was thrown while converting to a response model.") : DomainError(message)
     
     data class DateParseError(override val message: String = "An exception was thrown while parsing the date string.") : DomainError(message)
+    
+    data class ValidationError(override val message: String = "There was an error while validating the input.") : DomainError(message)
+    
+    data class JsonError(override val message: String = "There was an error while (de)serializing JSON.") : DomainError(message)
     
     data class EntityNotFound(override val message: String = "Entity not found.") : DomainError(message)
     

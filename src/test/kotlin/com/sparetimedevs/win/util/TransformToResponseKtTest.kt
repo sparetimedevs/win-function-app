@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 sparetimedevs and respective authors and developers.
+ * Copyright (c) 2021 sparetimedevs and respective authors and developers.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,13 @@
 
 package com.sparetimedevs.win.util
 
+import arrow.core.Either
 import arrow.core.Left
 import arrow.core.left
 import arrow.core.right
 import com.sparetimedevs.test.data.candidateTiffany
 import com.sparetimedevs.test.data.candidates
+import com.sparetimedevs.win.model.Candidate
 import com.sparetimedevs.win.model.DomainError
 import io.kotest.assertions.fail
 import io.kotest.core.spec.style.BehaviorSpec
@@ -29,41 +31,41 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coEvery
 import io.mockk.mockkStatic
 
-class ToViewModelKtTest : BehaviorSpec({
+class TransformToResponseKtTest : BehaviorSpec({
     
-    given("a call toViewModel") {
-        `when`("the IO contains a List of Candidates") {
-            then("the Candidates get transformed to CandidateViewModels") {
+    given("a call toResponse") {
+        `when`("the Either contains a List of Candidates") {
+            then("the Candidates get transformed to CandidateResponses") {
                 val eitherContainingCandidates = candidates.right()
                 
-                val result = eitherContainingCandidates.toViewModels()
+                val result = eitherContainingCandidates.toResponse()
                 
                 result.fold(
                     {
                         fail("This test case should yield a Right.")
                     },
                     {
-                        it.forEachIndexed { index, candidateViewModel ->
-                            candidateViewModel.name shouldBe candidates[index].name
-                            candidateViewModel.firstAttendance shouldBe candidates[index].firstAttendanceAndTurns.last()
-                            candidateViewModel.turns shouldBe candidates[index].firstAttendanceAndTurns.dropLast(1)
+                        it.forEachIndexed { index, candidateResponse ->
+                            candidateResponse.name shouldBe candidates[index].name
+                            candidateResponse.firstAttendance shouldBe candidates[index].firstAttendanceAndTurns.last().toDateFormattedString()
+                            candidateResponse.turns shouldBe candidates[index].firstAttendanceAndTurns.dropLast(1).map { turn -> turn.toDateFormattedString() }
                         }
                     }
                 )
             }
             
-            and("one of the Candidate to CandidateViewModel transformations results in a ToViewModelError") {
-                then("the ToViewModelError is returned") {
-                    mockkStatic("com.sparetimedevs.win.util.ToViewModelKt")
+            and("one of the Candidate to CandidateResponse transformations results in a ToResponseError") {
+                then("the ToResponseError is returned") {
+                    mockkStatic("com.sparetimedevs.win.util.TransformToResponseKt")
                     val eitherContainingCandidates = candidates.right()
                     
-                    coEvery { candidateTiffany.toViewModel() } returns Left(DomainError.ToViewModelError())
+                    coEvery { candidateTiffany.toResponse() } returns Left(DomainError.ToResponseError())
                     
-                    val result = eitherContainingCandidates.toViewModels()
+                    val result = eitherContainingCandidates.toResponse()
                     
                     result.fold(
                         {
-                            it.shouldBeInstanceOf<DomainError.ToViewModelError>()
+                            it.shouldBeInstanceOf<DomainError.ToResponseError>()
                         },
                         {
                             fail("This test case should yield a Left.")
@@ -73,11 +75,11 @@ class ToViewModelKtTest : BehaviorSpec({
             }
         }
         
-        `when`("the Either in the IO contains a ServiceUnavailable") {
+        `when`("the Either contains a ServiceUnavailable") {
             then("the ServiceUnavailable is returned") {
-                val eitherContainingDomainError = DomainError.ServiceUnavailable().left()
+                val eitherContainingDomainError: Either<DomainError, List<Candidate>> = DomainError.ServiceUnavailable().left()
                 
-                val result = eitherContainingDomainError.toViewModels()
+                val result = eitherContainingDomainError.toResponse()
                 
                 result.fold(
                     {

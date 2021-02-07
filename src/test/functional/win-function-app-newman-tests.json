@@ -104,7 +104,7 @@
 				"method": "PUT",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:7071/api/candidates/name/Ellen/date/20191002",
+					"raw": "http://localhost:7071/api/candidates/name/Ellen/date/2019-10-02",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -116,7 +116,7 @@
 						"name",
 						"Ellen",
 						"date",
-						"20191002"
+						"2019-10-02"
 					]
 				}
 			},

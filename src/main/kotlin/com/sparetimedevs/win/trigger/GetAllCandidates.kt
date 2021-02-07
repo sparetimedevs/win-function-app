@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 sparetimedevs and respective authors and developers.
+ * Copyright (c) 2021 sparetimedevs and respective authors and developers.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,9 +28,10 @@ import com.sparetimedevs.win.dependencyModule
 import com.sparetimedevs.win.service.CandidateService
 import com.sparetimedevs.win.trigger.handler.handleDomainError
 import com.sparetimedevs.win.trigger.handler.handleSuccessWithDefaultOrTextPlainHandler
-import com.sparetimedevs.win.trigger.handler.handleSystemFailureWithDefaultHandler
+import com.sparetimedevs.win.trigger.handler.handleSystemFailure
 import com.sparetimedevs.win.util.log
-import com.sparetimedevs.win.util.toViewModels
+import com.sparetimedevs.win.util.toResponse
+import java.util.logging.Level
 
 class GetAllCandidates(
     private val candidateService: CandidateService = dependencyModule.candidateService
@@ -48,11 +49,11 @@ class GetAllCandidates(
         context: ExecutionContext
     ): HttpResponseMessage =
         handleBlocking(
-            domainLogic = { candidateService.getAllCandidates().toViewModels() },
-            handleSuccess = { candidates -> handleSuccessWithDefaultOrTextPlainHandler(request, { level, message -> log(context, level, message) }, candidates) },
-            handleDomainError = { domainError -> handleDomainError(request, { level, message -> log(context, level, message) }, domainError) },
-            handleSystemFailure = { throwable -> handleSystemFailureWithDefaultHandler(request, { level, message -> log(context, level, message) }, throwable) },
-            log = { level, message -> log(context, level, message) }
+            f = { candidateService.getAllCandidates().toResponse() },
+            success = { candidates -> handleSuccessWithDefaultOrTextPlainHandler(request, candidates) },
+            error = { domainError -> handleDomainError(request, { level, message -> log(context, level, message) }, domainError) },
+            throwable = { throwable -> handleSystemFailure(request, { level, message -> log(context, level, message) }, throwable) },
+            unrecoverableState = { throwable -> log(context, Level.SEVERE, "A throwable was thrown: $throwable") }
         )
     
     companion object {

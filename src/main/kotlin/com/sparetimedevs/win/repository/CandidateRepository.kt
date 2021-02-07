@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 sparetimedevs and respective authors and developers.
+ * Copyright (c) 2021 sparetimedevs and respective authors and developers.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,32 +26,35 @@ import com.sparetimedevs.suspendmongo.crud.readOne
 import com.sparetimedevs.suspendmongo.crud.updateOne
 import com.sparetimedevs.suspendmongo.getCollection
 import com.sparetimedevs.win.model.Candidate
+import com.sparetimedevs.win.model.CandidateEntity
 import com.sparetimedevs.win.model.DomainError
+import com.sparetimedevs.win.model.toCandidate
+import com.sparetimedevs.win.model.toCandidateEntity
 import org.bson.conversions.Bson
 import org.bson.types.ObjectId
 
 class CandidateRepository(database: Database) {
     
-    private val collection = getCollection<Candidate>(database)
+    private val collection = getCollection<CandidateEntity>(database)
     
     suspend fun findAll(): Either<DomainError, List<Candidate>> =
-        databaseRequest { collection.readAll() }
+        databaseRequest { collection.readAll() }.map { it.map { it.toCandidate() } }
     
     suspend fun findAll(sort: Bson): Either<DomainError, List<Candidate>> =
-        databaseRequest { collection.readAll(sort) }
+        databaseRequest { collection.readAll(sort) }.map { it.map { it.toCandidate() } }
     
     suspend fun findOneByName(name: String): Either<DomainError, Candidate> =
-        databaseRequest { collection.readOne("name" to name) }
+        databaseRequest { collection.readOne("name" to name) }.map { it.toCandidate() }
     
     suspend fun deleteAll(): Either<DomainError, Boolean> =
         databaseRequest { collection.deleteAll() }
     
     suspend fun deleteOneById(id: ObjectId): Either<DomainError, Candidate> =
-        databaseRequest { collection.deleteOne(id) }
+        databaseRequest { collection.deleteOne(id) }.map { it.toCandidate() }
     
     suspend fun save(candidate: Candidate): Either<DomainError, Candidate> =
-        databaseRequest { collection.createOne(candidate) }
+        databaseRequest { collection.createOne(candidate.toCandidateEntity()) }.map { it.toCandidate() }
     
     suspend fun update(id: ObjectId, candidate: Candidate): Either<DomainError, Candidate> =
-        databaseRequest { collection.updateOne(id, candidate) }
+        databaseRequest { collection.updateOne(id, candidate.toCandidateEntity()) }.map { it.toCandidate() }
 }

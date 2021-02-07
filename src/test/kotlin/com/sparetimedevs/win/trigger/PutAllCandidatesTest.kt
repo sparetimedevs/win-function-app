@@ -17,24 +17,20 @@
 package com.sparetimedevs.win.trigger
 
 import arrow.core.Either
-import arrow.core.right
 import com.microsoft.azure.functions.ExecutionContext
 import com.microsoft.azure.functions.HttpRequestMessage
 import com.microsoft.azure.functions.HttpResponseMessage
 import com.microsoft.azure.functions.HttpStatus
 import com.sparetimedevs.HttpResponseMessageMock
 import com.sparetimedevs.pofpaf.handler.handleBlocking
-import com.sparetimedevs.test.data.candidateLois
-import com.sparetimedevs.win.algorithm.DetailsOfRolledDice
+import com.sparetimedevs.win.model.Candidate
 import com.sparetimedevs.win.model.DomainError
 import com.sparetimedevs.win.model.ErrorResponse
-import com.sparetimedevs.win.model.NextCandidateResponse
 import com.sparetimedevs.win.service.CandidateService
 import com.sparetimedevs.win.trigger.handler.CONTENT_TYPE
 import com.sparetimedevs.win.trigger.handler.CONTENT_TYPE_APPLICATION_JSON
+import com.sparetimedevs.win.trigger.handler.DATE_PARSE_ERROR_MESSAGE
 import com.sparetimedevs.win.trigger.handler.SERVICE_UNAVAILABLE_ERROR_MESSAGE
-import com.sparetimedevs.win.util.toResponse
-import io.kotest.assertions.fail
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
@@ -42,49 +38,42 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
 
-class GetNextCandidateTest : BehaviorSpec({
+class PutAllCandidatesTest : BehaviorSpec({
     
     mockkStatic("com.sparetimedevs.pofpaf.handler.HandlerKt")
-    val request = mockk<HttpRequestMessage<String?>>()
+    mockkStatic("com.sparetimedevs.win.trigger.validator.PutAllCandidatesValidatorKt")
+    val request = mockk<HttpRequestMessage<String?>>(relaxed = true)
     val context = mockk<ExecutionContext>()
     val candidateService = mockk<CandidateService>()
     
-    coEvery { candidateService.determineNextCandidate() } throws Exception("This mock makes sure that if the handleHttp function is not mocked properly, the test case will fail.")
+    coEvery {
+        candidateService.addDateToCandidate(
+            any(),
+            any()
+        )
+    } throws Exception("This mock makes sure that if the handleHttp function is not mocked properly, the test case will fail.")
     
-    given("get is called") {
+    given("put is called") {
         `when`("database is reachable") {
-            then("returns next candidate's name") {
-                val detailsOfRolledDice = DetailsOfRolledDice(listOf(3, 1, 5, 1, 2, 4))
-                val nextCandidateAndDetailsOfAlgorithmInBody: String =
-                    (candidateLois to detailsOfRolledDice).right()
-                        .toResponse()
-                        .fold(
-                            { fail("fail fast") },
-                            { it }
-                        )
-                        .toString()
+            then("returns HTTP status no content") {
                 val httpResponseMessage =
-                    HttpResponseMessageMock.HttpResponseMessageBuilderMock(HttpStatus.OK)
-                        .body(nextCandidateAndDetailsOfAlgorithmInBody)
-                        .header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
+                    HttpResponseMessageMock.HttpResponseMessageBuilderMock(HttpStatus.NO_CONTENT)
                         .build()
                 
                 every {
                     handleBlocking(
                         ctx = any(),
-                        f = any<suspend () -> Either<DomainError, NextCandidateResponse>>(),
-                        success = any<suspend (nextCandidate: NextCandidateResponse) -> Either<Throwable, HttpResponseMessage>>(),
+                        f = any<suspend () -> Either<DomainError, Candidate>>(),
+                        success = any<suspend (Candidate: Candidate) -> Either<Throwable, HttpResponseMessage>>(),
                         error = any(),
                         throwable = any(),
                         unrecoverableState = any()
                     )
                 } returns httpResponseMessage
                 
-                val response = GetNextCandidate(candidateService).get(request, context)
+                val response = PutAllCandidates(candidateService).put(request, context)
                 
-                response.status shouldBe HttpStatus.OK
-                response.getHeader(CONTENT_TYPE) shouldBe CONTENT_TYPE_APPLICATION_JSON
-                response.body shouldBe nextCandidateAndDetailsOfAlgorithmInBody
+                response.status shouldBe HttpStatus.NO_CONTENT
             }
         }
         
@@ -100,17 +89,45 @@ class GetNextCandidateTest : BehaviorSpec({
                 every {
                     handleBlocking(
                         ctx = any(),
-                        f = any<suspend () -> Either<DomainError, NextCandidateResponse>>(),
-                        success = any<suspend (nextCandidate: NextCandidateResponse) -> Either<Throwable, HttpResponseMessage>>(),
+                        f = any<suspend () -> Either<DomainError, Candidate>>(),
+                        success = any<suspend (Candidate: Candidate) -> Either<Throwable, HttpResponseMessage>>(),
                         error = any(),
                         throwable = any(),
                         unrecoverableState = any()
                     )
                 } returns httpResponseMessage
                 
-                val response = GetNextCandidate(candidateService).get(request, context)
+                val response = PutAllCandidates(candidateService).put(request, context)
                 
                 response.status shouldBe HttpStatus.INTERNAL_SERVER_ERROR
+                response.getHeader(CONTENT_TYPE) shouldBe CONTENT_TYPE_APPLICATION_JSON
+                response.body shouldBe errorInBody
+            }
+        }
+        
+        `when`("date could not be parsed") {
+            then("returns error message") {
+                val errorInBody: String = ErrorResponse(DATE_PARSE_ERROR_MESSAGE).toString()
+                val httpResponseMessage =
+                    HttpResponseMessageMock.HttpResponseMessageBuilderMock(HttpStatus.BAD_REQUEST)
+                        .body(errorInBody)
+                        .header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
+                        .build()
+                
+                every {
+                    handleBlocking(
+                        ctx = any(),
+                        f = any<suspend () -> Either<DomainError, Candidate>>(),
+                        success = any<suspend (Candidate: Candidate) -> Either<Throwable, HttpResponseMessage>>(),
+                        error = any(),
+                        throwable = any(),
+                        unrecoverableState = any()
+                    )
+                } returns httpResponseMessage
+                
+                val response = PutAllCandidates(candidateService).put(request, context)
+                
+                response.status shouldBe HttpStatus.BAD_REQUEST
                 response.getHeader(CONTENT_TYPE) shouldBe CONTENT_TYPE_APPLICATION_JSON
                 response.body shouldBe errorInBody
             }

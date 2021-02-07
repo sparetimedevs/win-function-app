@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 sparetimedevs and respective authors and developers.
+ * Copyright (c) 2021 sparetimedevs and respective authors and developers.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,12 +20,10 @@ import arrow.core.Either
 import com.microsoft.azure.functions.HttpRequestMessage
 import com.microsoft.azure.functions.HttpResponseMessage
 import com.microsoft.azure.functions.HttpStatus
-import com.sparetimedevs.pofpaf.log.Level
+import java.util.logging.Level
 
-@Suppress("UNUSED_PARAMETER")
 suspend fun <A> handleSuccessWithDefaultHandler(
     request: HttpRequestMessage<out Any?>,
-    log: suspend (level: Level, message: String) -> Either<Throwable, Unit>,
     a: A
 ): Either<Throwable, HttpResponseMessage> =
     Either.catch { request.createResponse(a) }
@@ -38,3 +36,11 @@ private fun <A> HttpRequestMessage<out Any?>.createResponse(a: A): HttpResponseM
         )
         .body(a)
         .build()
+
+@Suppress("UNUSED_PARAMETER")
+suspend fun <A> handleSuccessWithNoContentHttpResponse(
+    request: HttpRequestMessage<out Any?>,
+    log: suspend (level: Level, message: String) -> Either<Throwable, Unit>,
+    a: A
+): Either<Throwable, HttpResponseMessage> =
+    Either.catch { request.createResponseBuilder(HttpStatus.NO_CONTENT).build() }

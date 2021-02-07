@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 sparetimedevs and respective authors and developers.
+ * Copyright (c) 2021 sparetimedevs and respective authors and developers.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,22 +18,9 @@ package com.sparetimedevs.win.util
 
 import arrow.core.Either
 import com.microsoft.azure.functions.ExecutionContext
-import com.sparetimedevs.pofpaf.log.Level
+import java.util.logging.Level
 
 suspend fun log(context: ExecutionContext, level: Level, message: String): Either<Throwable, Unit> =
     Either.catch {
-        context.logger.log(getAzureFunctionsCompatible(level), message)
-    }
-
-fun getAzureFunctionsCompatible(level: Level): java.util.logging.Level =
-    when (level) {
-        Level.TRACE, Level.DEBUG, Level.INFO -> {
-            java.util.logging.Level.INFO
-        }
-        Level.WARN -> {
-            java.util.logging.Level.WARNING
-        }
-        Level.ERROR -> {
-            java.util.logging.Level.SEVERE
-        }
+        context.logger.log(level, message)
     }

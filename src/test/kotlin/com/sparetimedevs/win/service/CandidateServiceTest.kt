@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 sparetimedevs and respective authors and developers.
+ * Copyright (c) 2021 sparetimedevs and respective authors and developers.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,8 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import java.time.Instant
-import java.util.Date
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
 
 class CandidateServiceTest : BehaviorSpec({
     
@@ -129,7 +130,7 @@ class CandidateServiceTest : BehaviorSpec({
         `when`("database is reachable") {
             then("returns candidate") {
                 val eitherContainingCandidateLois = candidateLois.right()
-                val date = Date.from(Instant.ofEpochSecond(1567202400L))
+                val date: OffsetDateTime = Instant.ofEpochSecond(1567202400L).atOffset(ZoneOffset.UTC)
                 
                 coEvery { candidateRepository.findOneByName(any()) } returns eitherContainingCandidateLois
                 coEvery { candidateRepository.update(any(), any()) } returns eitherContainingCandidateLois
@@ -150,7 +151,7 @@ class CandidateServiceTest : BehaviorSpec({
         `when`("database is unreachable") {
             then("returns error message") {
                 val eitherContainingError = DomainError.ServiceUnavailable().left()
-                val date = Date.from(Instant.ofEpochSecond(1567202400L))
+                val date: OffsetDateTime = Instant.ofEpochSecond(1567202400L).atOffset(ZoneOffset.UTC)
                 
                 coEvery { candidateRepository.findOneByName(any()) } returns eitherContainingError
                 

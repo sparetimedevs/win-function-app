@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 sparetimedevs and respective authors and developers.
+ * Copyright (c) 2021 sparetimedevs and respective authors and developers.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,4 +16,7 @@
 
 package com.sparetimedevs.win.model
 
-data class ErrorViewModel(val errorMessage: String)
+data class ErrorResponse(val errorMessage: String)
+
+fun DomainError.toResponse(): ErrorResponse =
+    ErrorResponse(this.message)

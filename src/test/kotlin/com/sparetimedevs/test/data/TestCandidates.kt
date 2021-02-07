@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 sparetimedevs and respective authors and developers.
+ * Copyright (c) 2021 sparetimedevs and respective authors and developers.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,16 +18,17 @@ package com.sparetimedevs.test.data
 
 import com.sparetimedevs.win.model.Candidate
 import java.time.Instant
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
-import java.util.Date
 
-internal val date1: Date = Date.from(Instant.now().plus(16L, ChronoUnit.DAYS))
-internal val date2: Date = Date.from(Instant.now().minus(12L, ChronoUnit.DAYS))
-internal val date3: Date = Date.from(Instant.now().minus(30L, ChronoUnit.DAYS))
-internal val date4: Date = Date.from(Instant.now().minus(44L, ChronoUnit.DAYS))
-internal val date5: Date = Date.from(Instant.now().minus(64L, ChronoUnit.DAYS))
-internal val date6: Date = Date.from(Instant.now().minus(108L, ChronoUnit.DAYS))
-internal val date7: Date = Date.from(Instant.now().minus(134L, ChronoUnit.DAYS))
+internal val date1: OffsetDateTime = OffsetDateTime.from(Instant.now().plus(16L, ChronoUnit.DAYS).atOffset(ZoneOffset.UTC))
+internal val date2: OffsetDateTime = OffsetDateTime.from(Instant.now().minus(12L, ChronoUnit.DAYS).atOffset(ZoneOffset.UTC))
+internal val date3: OffsetDateTime = OffsetDateTime.from(Instant.now().minus(30L, ChronoUnit.DAYS).atOffset(ZoneOffset.UTC))
+internal val date4: OffsetDateTime = OffsetDateTime.from(Instant.now().minus(44L, ChronoUnit.DAYS).atOffset(ZoneOffset.UTC))
+internal val date5: OffsetDateTime = OffsetDateTime.from(Instant.now().minus(64L, ChronoUnit.DAYS).atOffset(ZoneOffset.UTC))
+internal val date6: OffsetDateTime = OffsetDateTime.from(Instant.now().minus(108L, ChronoUnit.DAYS).atOffset(ZoneOffset.UTC))
+internal val date7: OffsetDateTime = OffsetDateTime.from(Instant.now().minus(134L, ChronoUnit.DAYS).atOffset(ZoneOffset.UTC))
 
 internal val candidateRose = Candidate(name = "Rose", firstAttendanceAndTurns = listOf(date2, date5, date6, date7))
 internal val candidateAbbie = Candidate(name = "Abbie", firstAttendanceAndTurns = listOf(date3, date7))

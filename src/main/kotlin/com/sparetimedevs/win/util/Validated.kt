@@ -14,20 +14,15 @@
  * limitations under the License.
  */
 
-package com.sparetimedevs.win.model
+package com.sparetimedevs.win.util
 
-import io.kotest.core.spec.style.BehaviorSpec
-import io.kotest.matchers.ints.shouldBeInRange
+import arrow.core.Validated
+import arrow.core.fix
 
-class DieTest : BehaviorSpec({
-    
-    given("a D6") {
-        `when`("roll") {
-            then("returns a number in range of one to six") {
-                repeat(300) {
-                    D6.roll() shouldBeInRange IntRange(1, 6)
-                }
-            }
+inline fun <A, B, C> Validated<A, B>.flatMap(f: (B) -> Validated<A, C>): Validated<A, C> =
+    fix().let {
+        when (it) {
+            is Validated.Valid -> f(it.a)
+            is Validated.Invalid -> it
         }
     }
-})

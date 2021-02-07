@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 sparetimedevs and respective authors and developers.
+ * Copyright (c) 2021 sparetimedevs and respective authors and developers.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,32 +25,33 @@ import arrow.core.flatMap
 import arrow.fx.coroutines.parTraverse
 import com.sparetimedevs.win.algorithm.DetailsOfAlgorithm
 import com.sparetimedevs.win.model.Candidate
-import com.sparetimedevs.win.model.CandidateViewModel
+import com.sparetimedevs.win.model.CandidateResponse
 import com.sparetimedevs.win.model.DomainError
-import com.sparetimedevs.win.model.DomainError.ToViewModelError
-import com.sparetimedevs.win.model.NextCandidateViewModel
+import com.sparetimedevs.win.model.DomainError.ToResponseError
+import com.sparetimedevs.win.model.NextCandidateResponse
 
-suspend fun Either<DomainError, List<Candidate>>.toViewModels(): Either<DomainError, List<CandidateViewModel>> =
+suspend fun Either<DomainError, List<Candidate>>.toResponse(): Either<DomainError, List<CandidateResponse>> =
     this
         .map { candidates: List<Candidate> ->
-            candidates.parTraverse { candidate -> candidate.toViewModel() }
+            candidates.parTraverse { candidate -> candidate.toResponse() }
         }
-        .flatMap { candidates: List<Either<DomainError, CandidateViewModel>> ->
+        .flatMap { candidates: List<Either<DomainError, CandidateResponse>> ->
             candidates.sequence(Either.applicative())
                 .map { it.fix() }
         }
 
-suspend fun Candidate.toViewModel(): Either<DomainError, CandidateViewModel> =
-    Either.catch({ throwable: Throwable ->
-        throwable.message?.let { ToViewModelError(it) } ?: ToViewModelError()
-    }) {
-        CandidateViewModel(name, firstAttendanceAndTurns.last(), firstAttendanceAndTurns.dropLast(1))
+suspend fun Candidate.toResponse(): Either<DomainError, CandidateResponse> =
+    Either.catch {
+        CandidateResponse(name, firstAttendanceAndTurns.last().toDateFormattedString(), firstAttendanceAndTurns.dropLast(1).map { it.toDateFormattedString() })
     }
+        .mapLeft { throwable: Throwable ->
+            throwable.message?.let { ToResponseError(it) } ?: ToResponseError()
+        }
 
-fun Either<DomainError, Pair<Candidate, DetailsOfAlgorithm>>.toViewModel(): Either<DomainError, NextCandidateViewModel> =
+fun Either<DomainError, Pair<Candidate, DetailsOfAlgorithm>>.toResponse(): Either<DomainError, NextCandidateResponse> =
     this.map {
-        it.toViewModel()
+        it.toResponse()
     }
 
-fun Pair<Candidate, DetailsOfAlgorithm>.toViewModel(): NextCandidateViewModel =
-    NextCandidateViewModel(this.first.name, this.second)
+fun Pair<Candidate, DetailsOfAlgorithm>.toResponse(): NextCandidateResponse =
+    NextCandidateResponse(this.first.name, this.second)
