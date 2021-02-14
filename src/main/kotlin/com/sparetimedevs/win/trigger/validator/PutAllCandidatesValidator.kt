@@ -46,7 +46,7 @@ suspend fun HttpRequestMessage<String?>.validateAllCandidatesInput(): Validated<
                         validateFirstAttendance(candidateInput.firstAttendance),
                         validateTurns(candidateInput.turns)
                     ) { name: String, firstAttendance: OffsetDateTime, turns: List<OffsetDateTime> ->
-                        Candidate(name = name, firstAttendanceAndTurns = listOf(firstAttendance) + turns)
+                        Candidate(name = name, firstAttendanceAndTurns = turns + listOf(firstAttendance))
                     }
                 }
                     .sequence(Validated.applicative(NonEmptyList.semigroup<DomainError.ValidationError>())).fix()

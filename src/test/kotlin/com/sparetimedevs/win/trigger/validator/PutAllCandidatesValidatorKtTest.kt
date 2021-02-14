@@ -16,15 +16,19 @@
 
 package com.sparetimedevs.win.trigger.validator
 
-import arrow.core.Validated
 import com.microsoft.azure.functions.HttpRequestMessage
+import com.sparetimedevs.test.helper.shouldBeInvalidAndContain
+import com.sparetimedevs.test.helper.shouldBeValidAndContainExactly
 import com.sparetimedevs.win.model.Candidate
 import com.sparetimedevs.win.model.DomainError
-import io.kotest.assertions.fail
 import io.kotest.core.spec.style.BehaviorSpec
-import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
+import java.time.LocalDate
+import java.time.OffsetDateTime
+import java.time.ZoneId
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 
 class PutAllCandidatesValidatorKtTest : BehaviorSpec({
     
@@ -34,16 +38,7 @@ class PutAllCandidatesValidatorKtTest : BehaviorSpec({
                 val request = mockk<HttpRequestMessage<String?>>()
                 every { request.body } returns CANDIDATES_AS_JSON_STRING
                 
-                val result: Validated<DomainError, List<Candidate>> = request.validateAllCandidatesInput()
-                
-                result.fold(
-                    {
-                        fail("Test case should yield a valid result.")
-                    },
-                    {
-                        it.size shouldBe 22
-                    }
-                )
+                request.validateAllCandidatesInput() shouldBeValidAndContainExactly EXPECTED_CANDIDATES
             }
         }
     }
@@ -54,16 +49,7 @@ class PutAllCandidatesValidatorKtTest : BehaviorSpec({
                 val request = mockk<HttpRequestMessage<String?>>()
                 every { request.body } returns CANDIDATES_WITH_SOME_NAMES_AS_JSON_STRING
                 
-                val result = request.validateAllCandidatesInput()
-                
-                result.fold(
-                    {
-                        it shouldBe DomainError.ValidationError("One or more fields were not supplied correctly.")
-                    },
-                    {
-                        fail("Test case should yield an invalid result.")
-                    }
-                )
+                request.validateAllCandidatesInput() shouldBeInvalidAndContain DomainError.ValidationError("One or more fields were not supplied correctly.")
             }
         }
     }
@@ -74,16 +60,7 @@ class PutAllCandidatesValidatorKtTest : BehaviorSpec({
                 val request = mockk<HttpRequestMessage<String?>>()
                 every { request.body } returns CANDIDATES_WITH_SOME_FIRST_ATTENDANCES_MISSING_AS_JSON_STRING
                 
-                val result = request.validateAllCandidatesInput()
-                
-                result.fold(
-                    {
-                        it shouldBe DomainError.ValidationError("One or more fields were not supplied correctly.")
-                    },
-                    {
-                        fail("Test case should yield an invalid result.")
-                    }
-                )
+                request.validateAllCandidatesInput() shouldBeInvalidAndContain DomainError.ValidationError("One or more fields were not supplied correctly.")
             }
         }
     }
@@ -94,16 +71,7 @@ class PutAllCandidatesValidatorKtTest : BehaviorSpec({
                 val request = mockk<HttpRequestMessage<String?>>()
                 every { request.body } returns CANDIDATES_WITH_WRONG_DATE_FORMAT_AS_FIRST_ATTENDANCE_JSON_STRING
                 
-                val result = request.validateAllCandidatesInput()
-                
-                result.fold(
-                    {
-                        it shouldBe DomainError.ValidationError("One or more fields were not supplied correctly.")
-                    },
-                    {
-                        fail("Test case should yield an invalid result.")
-                    }
-                )
+                request.validateAllCandidatesInput() shouldBeInvalidAndContain DomainError.ValidationError("One or more fields were not supplied correctly.")
             }
         }
     }
@@ -114,16 +82,7 @@ class PutAllCandidatesValidatorKtTest : BehaviorSpec({
                 val request = mockk<HttpRequestMessage<String?>>()
                 every { request.body } returns CANDIDATES_WITHOUT_TURNS_AS_JSON_STRING
                 
-                val result = request.validateAllCandidatesInput()
-                
-                result.fold(
-                    {
-                        fail("Test case should yield a valid result.")
-                    },
-                    {
-                        it.size shouldBe 22
-                    }
-                )
+                request.validateAllCandidatesInput() shouldBeValidAndContainExactly EXPECTED_CANDIDATES
             }
         }
     }
@@ -134,16 +93,7 @@ class PutAllCandidatesValidatorKtTest : BehaviorSpec({
                 val request = mockk<HttpRequestMessage<String?>>()
                 every { request.body } returns CANDIDATES_WITH_WRONG_DATE_FORMAT_AS_TURN_JSON_STRING
                 
-                val result = request.validateAllCandidatesInput()
-                
-                result.fold(
-                    {
-                        it shouldBe DomainError.ValidationError("One or more fields were not supplied correctly.")
-                    },
-                    {
-                        fail("Test case should yield an invalid result.")
-                    }
-                )
+                request.validateAllCandidatesInput() shouldBeInvalidAndContain DomainError.ValidationError("One or more fields were not supplied correctly.")
             }
         }
     }
@@ -154,16 +104,7 @@ class PutAllCandidatesValidatorKtTest : BehaviorSpec({
                 val request = mockk<HttpRequestMessage<String?>>()
                 every { request.body } returns null
                 
-                val result = request.validateAllCandidatesInput()
-                
-                result.fold(
-                    {
-                        it shouldBe DomainError.ValidationError("The body was empty")
-                    },
-                    {
-                        fail("Test case should yield an invalid result.")
-                    }
-                )
+                request.validateAllCandidatesInput() shouldBeInvalidAndContain DomainError.ValidationError("The body was empty")
             }
         }
     }
@@ -174,21 +115,52 @@ class PutAllCandidatesValidatorKtTest : BehaviorSpec({
                 val request = mockk<HttpRequestMessage<String?>>()
                 every { request.body } returns ""
                 
-                val result = request.validateAllCandidatesInput()
-                
-                result.fold(
-                    {
-                        it shouldBe DomainError.ValidationError("The body was empty")
-                    },
-                    {
-                        fail("Test case should yield an invalid result.")
-                    }
-                )
+                request.validateAllCandidatesInput() shouldBeInvalidAndContain DomainError.ValidationError("The body was empty")
             }
         }
     }
 }) {
     companion object {
+        
+        private val date1: OffsetDateTime =
+            LocalDate.parse("2020-09-11", DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZoneId.from(ZoneOffset.UTC))).atStartOfDay().atOffset(ZoneOffset.UTC).plusHours(12)
+        private val date2: OffsetDateTime =
+            LocalDate.parse("2020-10-07", DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZoneId.from(ZoneOffset.UTC))).atStartOfDay().atOffset(ZoneOffset.UTC).plusHours(12)
+        private val date3: OffsetDateTime =
+            LocalDate.parse("2020-11-20", DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZoneId.from(ZoneOffset.UTC))).atStartOfDay().atOffset(ZoneOffset.UTC).plusHours(12)
+        private val date4: OffsetDateTime =
+            LocalDate.parse("2020-12-10", DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZoneId.from(ZoneOffset.UTC))).atStartOfDay().atOffset(ZoneOffset.UTC).plusHours(12)
+        private val date5: OffsetDateTime =
+            LocalDate.parse("2020-12-24", DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZoneId.from(ZoneOffset.UTC))).atStartOfDay().atOffset(ZoneOffset.UTC).plusHours(12)
+        private val date6: OffsetDateTime =
+            LocalDate.parse("2021-01-11", DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZoneId.from(ZoneOffset.UTC))).atStartOfDay().atOffset(ZoneOffset.UTC).plusHours(12)
+        private val date7: OffsetDateTime =
+            LocalDate.parse("2021-02-08", DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZoneId.from(ZoneOffset.UTC))).atStartOfDay().atOffset(ZoneOffset.UTC).plusHours(12)
+        
+        private val EXPECTED_CANDIDATES = listOf(
+            Candidate(name = "Joseph", firstAttendanceAndTurns = listOf(date7, date4, date1)),
+            Candidate(name = "James", firstAttendanceAndTurns = listOf(date6)),
+            Candidate(name = "Rose", firstAttendanceAndTurns = listOf(date6, date3, date2, date1)),
+            Candidate(name = "Abbie", firstAttendanceAndTurns = listOf(date5, date1)),
+            Candidate(name = "Elsa", firstAttendanceAndTurns = listOf(date5)),
+            Candidate(name = "Aisha", firstAttendanceAndTurns = listOf(date1)),
+            Candidate(name = "Alexa", firstAttendanceAndTurns = listOf(date1)),
+            Candidate(name = "Cerys", firstAttendanceAndTurns = listOf(date1)),
+            Candidate(name = "Eden", firstAttendanceAndTurns = listOf(date1)),
+            Candidate(name = "Elle", firstAttendanceAndTurns = listOf(date1)),
+            Candidate(name = "Ellen", firstAttendanceAndTurns = listOf(date1)),
+            Candidate(name = "Fani", firstAttendanceAndTurns = listOf(date1)),
+            Candidate(name = "George", firstAttendanceAndTurns = listOf(date1)),
+            Candidate(name = "Kevin", firstAttendanceAndTurns = listOf(date1)),
+            Candidate(name = "Kimberley", firstAttendanceAndTurns = listOf(date1)),
+            Candidate(name = "Lois", firstAttendanceAndTurns = listOf(date1)),
+            Candidate(name = "Margaret", firstAttendanceAndTurns = listOf(date1)),
+            Candidate(name = "Penny", firstAttendanceAndTurns = listOf(date1)),
+            Candidate(name = "Saffron", firstAttendanceAndTurns = listOf(date1)),
+            Candidate(name = "Tiffany", firstAttendanceAndTurns = listOf(date1)),
+            Candidate(name = "Tommy", firstAttendanceAndTurns = listOf(date1)),
+            Candidate(name = "William", firstAttendanceAndTurns = listOf(date1))
+        )
         
         private const val CANDIDATES_AS_JSON_STRING =
             """[
